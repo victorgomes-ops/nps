@@ -6,7 +6,7 @@
   "description": "Dashboard HTML de NPS da PWR Gestao, com dados reembutidos a partir de bases do Google Drive e deploy automatico na Vercel.",
   "scripts": {
     "atualizar-dados": "node scripts/build-data.mjs",
-    "deploy": "node scripts/deploy-vercel.mjs"
+    "deploy": "node --env-file-if-exists=.env scripts/deploy-vercel.mjs"
   },
   "dependencies": {
     "xlsx": "^0.18.5"
