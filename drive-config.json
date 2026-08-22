@@ -1,0 +1,28 @@
+{
+  "_comentario": "IDs dos arquivos no Google Drive usados pelo relatorio de NPS. Nao sao segredos (sao apenas identificadores de arquivo), por isso ficam versionados.",
+  "arquivos": {
+    "npsCampanha": {
+      "id": "1lDhJQukEzwZ07Ka6KNmLtoeDYvgtZIVJ",
+      "nome": "NPS - Campanha.xlsx",
+      "aba": "RESUMO MÊS (2)",
+      "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\3 - NPS"
+    },
+    "alocacoesNps": {
+      "id": "1J9RigcP7C0_4Sd6tg5Gs9Hfm4Q8BWAy0",
+      "nome": "Alocações - NPS.xlsx",
+      "observacao": "Usar este arquivo, nao 'Alocações.xlsx'",
+      "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
+    },
+    "usuarios": {
+      "id": "1mdwezfiSBrgDfOyPveaKMNyDTCQNF2Pa",
+      "nome": "Usuarios.xlsx",
+      "observacao": "Coluna 'Ativo': Sim = colaborador ativo",
+      "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
+    }
+  },
+  "vercel": {
+    "projectId": "prj_XElRMaYdx1R5HUkJgto5gqCsjvzS",
+    "productionUrl": "relatorio-gerencial-nps.vercel.app",
+    "_nunca_mexer_em": "alocacao-pwr.vercel.app"
+  }
+}
