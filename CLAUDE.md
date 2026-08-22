@@ -6,26 +6,40 @@ quem falta cobrar.
 
 ## Status atual (22/ago/2026)
 
-Toda a automação abaixo já foi construída e testada numa sessão do Claude Code Web,
-mas aquela sessão **não conseguiu dar `git push`** (a integração do Claude com o
-GitHub nesta conta só tem OAuth de leitura, não instalação com escrita — "Resource
-not accessible by integration" / "Permission ... denied"). Por isso o código foi
-entregue como zip para ser commitado localmente.
+Resolvido. A sessão anterior do Claude Code Web tinha construído toda a automação
+abaixo, mas não conseguiu dar `git push` (a integração do Claude com o GitHub nesta
+conta só tem OAuth de leitura — "Resource not accessible by integration"). O código
+foi entregue como zip e commitado/pushado localmente com sucesso nesta sessão: o
+problema era mesmo restrito à integração remota, não ao código.
 
-- ✅ **Vercel já está publicado e atualizado** (`relatorio-gerencial-nps.vercel.app`),
-  com dados reais de Agosto/2026 (40 projetos NPS, 1266 alocações, 106 ativos).
-  Isso não depende do GitHub e já está no ar.
-- ⚠️ **Este repositório local (extraído do zip) ainda não foi commitado/pushado.**
-  Se `git status` mostrar tudo untracked/modified, esse é o primeiro passo: `git add -A`,
-  commit, e `git push -u origin claude/nps-relatorio-auto-deploy-6lg0f3` (a branch já
-  existe? confira com `git ls-remote origin` — se não existir no remoto, o push normal
-  já cria).
-- Se o push funcionar local (usando as credenciais de GitHub já configuradas na
-  máquina), o problema estava mesmo restrito à integração remota, não ao código.
-
+- ✅ **Repositório GitHub:** https://github.com/victorgomes-ops/nps — branch `main`,
+  com as credenciais de git já configuradas na máquina (push local funciona normal).
+- ✅ **Vercel já está publicado e atualizado** (`relatorio-gerencial-nps.vercel.app`,
+  projeto `relatoriogerencialnps`), com dados reais de Agosto/2026 (40 projetos NPS,
+  1266 alocações, 106 ativos). O deploy é via API (script), não Git-linkado — dar
+  push no GitHub não publica sozinho na Vercel, é preciso rodar
+  `scripts/deploy-vercel.mjs` (ver fluxo abaixo).
 - **URL de produção:** relatorio-gerencial-nps.vercel.app
 - **Vercel Project ID:** ver `drive-config.json` (`vercel.projectId`)
 - **NUNCA fazer deploy no projeto:** `alocacao-pwr.vercel.app` (outro dashboard, não relacionado)
+
+### Armadilha conhecida: `npm install` dentro do Google Drive
+
+Este repositório vive em `G:\Meu Drive\...` (pasta sincronizada pelo Google Drive
+Desktop). Rodar `npm install` diretamente aqui **corrompe arquivos silenciosamente**
+(ex.: `node_modules/xlsx/package.json` vira 0 bytes, erro `ERR_INVALID_PACKAGE_CONFIG`
+ao dar `require`) — é um problema conhecido do filesystem virtual do Google Drive
+com a extração de tarball do npm, não um bug do projeto.
+
+Workaround (se precisar reinstalar `node_modules`):
+```bash
+mkdir /c/temp-nps-install && cp package.json /c/temp-nps-install/
+cd /c/temp-nps-install && npm install
+cp -r node_modules "G:/Meu Drive/Victor Gomes/App_NPS/"
+```
+Ou seja: instale numa pasta local (fora do Drive) e copie o `node_modules` resultante
+por cima — copiar arquivos prontos funciona bem, só a extração ao vivo do npm que
+falha nesse filesystem.
 
 ## Como funciona
 
