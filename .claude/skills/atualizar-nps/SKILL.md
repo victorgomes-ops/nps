@@ -14,6 +14,15 @@ não tiver o contexto na conversa.
 
 ## Passo a passo
 
+0. **Garantir que o `index.html` local está igual ao último commit** antes de
+   tocar em qualquer coisa: rode `git status --short index.html` (ou
+   `git diff --quiet index.html`). Se aparecer QUALQUER diferença — mesmo sem
+   ninguém ter editado nada nesta sessão — **não parta desse arquivo**. Este
+   repositório vive dentro do Google Drive (`G:\Meu Drive\...`) e o Drive
+   Desktop já reverteu silenciosamente o `index.html` para uma versão antiga
+   entre duas sessões pelo menos uma vez (ver `CLAUDE.md`). Restaure com
+   `git checkout -- index.html` antes de seguir para o passo 1.
+
 1. **Baixar as 3 bases do Google Drive** usando a ferramenta MCP
    `mcp__Google_Drive__download_file_content`, com os IDs de `drive-config.json`
    (`arquivos.npsCampanha.id`, `arquivos.alocacoesNps.id`, `arquivos.usuarios.id`).
@@ -31,9 +40,13 @@ não tiver o contexto na conversa.
    carregados. Confira se os números fazem sentido (ex: não deveria zerar).
 
 3. **Revisar e commitar**: rode `git diff --stat index.html` para confirmar que só
-   as 3 linhas de dados mudaram, depois `git add index.html` e commit com uma
-   mensagem como `Atualiza dados NPS (Drive) - <data>`. Faça push para a branch
-   atual.
+   umas poucas linhas de dados mudaram. Se aparecer QUALQUER linha fora das 3
+   (`currentNps`, `currentAloc`, `currentUsers`) — nem que seja só 1 linha extra —
+   **pare e olhe o `git diff` completo antes de commitar**: isso é sinal de que o
+   arquivo local já estava desatualizado/revertido antes de rodar o
+   `build-data.mjs` (ver passo 0). Só depois de confirmar que o diff é só dados,
+   `git add index.html` e commit com uma mensagem como
+   `Atualiza dados NPS (Drive) - <data>`. Faça push para a branch atual.
 
 4. **Publicar na Vercel**:
    ```
