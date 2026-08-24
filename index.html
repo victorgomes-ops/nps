@@ -643,6 +643,13 @@ function showTab(name){
  document.querySelectorAll('.tabbtn').forEach(el=>el.classList.remove('active'));
  document.getElementById('tab-'+name).classList.add('active');
  document.getElementById('tabbtn-'+name).classList.add('active');
+ if(name === 'gerencial' && lastGerencialKpi){
+  // Os canvases do Chart.js nascem com tamanho 0x0 quando a aba está escondida
+  // (display:none) no carregamento da página, e o .resize() não corrige um
+  // canvas que nunca teve tamanho real. Recriar os gráficos aqui (a aba já
+  // está visível nesse ponto) garante que nasçam com o tamanho certo.
+  renderCharts(lastGerencialKpi, processUnidades(currentNps));
+ }
 }
 
 function first(n){return n.split(" ")[0];}
@@ -1036,6 +1043,7 @@ const dataLabelsPlugin = {
 let donutChartObj = null;
 let barChartObj = null;
 let gerencialData = [];
+let lastGerencialKpi = null;
 let gerencialSortCol = 'pct';
 let gerencialSortDir = 'asc';
 let gerencialSortAtivo = false; // só mostra indicador visual após o usuário clicar
@@ -1254,6 +1262,7 @@ function attachSortHandlers(){
 
 function renderGerencial(liderData, kpi){
  gerencialData = liderData;
+ lastGerencialKpi = kpi;
  // popula drwData para o drawer
  drwData = {};
  liderData.forEach(d=>{ drwData[d.nome] = d; });
@@ -1513,6 +1522,13 @@ document.getElementById('fileInputUsers').addEventListener('change', function(e)
 
 attachSortHandlers();
 renderAll();
+
+// Reflete os dados já embutidos (via scripts/build-data.mjs) no aviso de status
+// dos uploads manuais, em vez de deixar o texto de exemplo do template.
+document.getElementById('statusNps').textContent = 'Aba "RESUMO MÊS (2)" — '+currentNps.length+' projetos carregados (dados embutidos).';
+document.getElementById('statusNps').classList.add('ok');
+document.getElementById('statusAloc').textContent = currentAloc.length+' alocações carregadas (dados embutidos).';
+document.getElementById('statusAloc').classList.add('ok');
 </script>
 </body>
 </html>
