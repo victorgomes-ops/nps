@@ -41,31 +41,26 @@ Ou seja: instale numa pasta local (fora do Drive) e copie o `node_modules` resul
 por cima — copiar arquivos prontos funciona bem, só a extração ao vivo do npm que
 falha nesse filesystem.
 
-### Armadilha conhecida: Google Drive pode reverter `index.html` sozinho entre sessões
+### Bug corrigido: `build-data.mjs` apagava a `</div>` do subtítulo Gerencial a cada rodada
 
-Em 24/ago/2026, o `index.html` local voltou a ter um bug (`<div class="gsub">` sem
-fechar, já corrigido antes) bem no meio de um fluxo de "atualizar e publicar" — sem
-qualquer edição manual nesse trecho. O commit anterior (com a correção) estava
-certinho no GitHub; o arquivo em disco é que estava com uma cópia antiga na hora de
-rodar `build-data.mjs`, e isso foi commitado por cima sem ninguém notar (o script só
-reescreve 3 linhas de dados, então uma reversão em outra parte do arquivo passa
-batido se você só olhar `git diff --stat` de forma superficial ou comparar só os
-arrays de dados).
+Em 22-24/ago/2026, a tabela "Equipe" da aba Gerencial ficou do lado dos gráficos em
+vez de embaixo (bug de `<div class="gsub">` sem fechar) — e voltava **toda vez** que
+a aba de dados era atualizada, mesmo depois de corrigido. Cheguei a suspeitar do
+Google Drive revertendo o arquivo sozinho (fica sincronizado em `G:\Meu Drive\...`),
+mas a causa real era outra e já foi corrigida em `scripts/build-data.mjs`
+(commit `9d27caf`): a função `atualizaPeriodo()` usava a regex
+`/Painel executivo — Campanha de NPS (\S+)/` para descobrir o texto atual do
+período. Como "Agosto/2026" fica colado no `</div>` de fechamento sem espaço, o
+`\S+` (guloso, não para em `<`) capturava `"Agosto/2026</div>"` inteiro, e o
+`replaceAll` seguinte apagava a tag ao substituir pelo mesmo texto sem ela — ou
+seja, **o próprio script de atualização quebrava a correção a cada execução**,
+não o Google Drive. A regex agora é `([^\s<]+)`, que para antes do `<`.
 
-Suspeita: a sincronização do Google Drive Desktop, ao reconciliar o arquivo entre o
-que está na nuvem e no disco local, pode restaurar uma versão mais antiga por baixo
-dos panos — o mesmo tipo de risco do filesystem virtual que já causa o problema do
-`npm install` acima, só que afetando um arquivo versionado no git em vez de
-`node_modules`.
-
-**Mitigação (ver também `.claude/skills/atualizar-nps/SKILL.md`, passo 0):** antes de
-reprocessar dados ou editar `index.html`, sempre rodar `git status --short index.html`
-primeiro. Se houver qualquer diferença em relação ao último commit sem explicação,
-restaurar com `git checkout -- index.html` antes de continuar — nunca partir do
-arquivo em disco às cegas só porque "ninguém editou nada". Depois de rodar
-`build-data.mjs`, checar o `git diff` completo (não só `--stat`) antes de commitar:
-se aparecer qualquer linha fora dos 3 arrays de dados (`currentNps`, `currentAloc`,
-`currentUsers`), é sinal desse problema.
+Mesmo com a causa raiz corrigida, mantenha o hábito (documentado também em
+`.claude/skills/atualizar-nps/SKILL.md`, passo 0/3) de conferir o `git diff`
+completo do `index.html` antes de commitar — não só o `--stat` — e desconfiar se
+aparecer qualquer linha fora dos 3 arrays de dados (`currentNps`, `currentAloc`,
+`currentUsers`). É uma boa prática geral, não só para este bug específico.
 
 ## Como funciona
 

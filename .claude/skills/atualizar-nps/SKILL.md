@@ -16,12 +16,10 @@ não tiver o contexto na conversa.
 
 0. **Garantir que o `index.html` local está igual ao último commit** antes de
    tocar em qualquer coisa: rode `git status --short index.html` (ou
-   `git diff --quiet index.html`). Se aparecer QUALQUER diferença — mesmo sem
-   ninguém ter editado nada nesta sessão — **não parta desse arquivo**. Este
-   repositório vive dentro do Google Drive (`G:\Meu Drive\...`) e o Drive
-   Desktop já reverteu silenciosamente o `index.html` para uma versão antiga
-   entre duas sessões pelo menos uma vez (ver `CLAUDE.md`). Restaure com
-   `git checkout -- index.html` antes de seguir para o passo 1.
+   `git diff --quiet index.html`). Se aparecer QUALQUER diferença sem
+   explicação, restaure com `git checkout -- index.html` antes de seguir para
+   o passo 1 — boa prática geral, mesmo que a causa que motivou este passo
+   (ver `CLAUDE.md`) já tenha sido corrigida na raiz.
 
 1. **Baixar as 3 bases do Google Drive** usando a ferramenta MCP
    `mcp__Google_Drive__download_file_content`, com os IDs de `drive-config.json`
