@@ -138,7 +138,7 @@ function atualizaPeriodo(html, periodo) {
   const barraAtual = /Campanha NPS — (.+?)<em>/.exec(html);
   if (barraAtual) html = html.replaceAll(barraAtual[1], novoBarra);
 
-  const gsubAtual = /Painel executivo — Campanha de NPS (\S+)/.exec(html);
+  const gsubAtual = /Painel executivo — Campanha de NPS ([^\s<]+)/.exec(html);
   if (gsubAtual) html = html.replaceAll(gsubAtual[1], novoBarra);
 
   const fraseAtual = /Na campanha de NPS de (\S+?),/.exec(html);
