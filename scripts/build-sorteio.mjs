@@ -109,7 +109,18 @@ function parseHistoricoAplicacao(filePath) {
         ano = data.getFullYear();
         mes = data.getMonth();
       }
-      return { empresa, tipo, ano, mes }; // mes: 0-11
+      return {
+        empresa,
+        tipo,
+        ano,
+        mes, // mes: 0-11
+        gerente: (r['Gerente do Projeto'] || '').toString().trim(),
+        scrumMaster: (r['Scrum Master'] || '').toString().trim(),
+        status: (r['Status'] || '').toString().trim(),
+        nota: r['Nota'] === '' ? null : r['Nota'],
+        classificacao: (r['Classificação'] || '').toString().trim(),
+        projeto: (r['Projeto'] || '').toString().trim(),
+      };
     })
     .filter(Boolean);
 }
@@ -197,18 +208,15 @@ function main() {
 
     // "Data Término Previsto" fica vazia na quase totalidade dos contratos (98% dos
     // ativos) — quem carrega a data real prevista de encerramento nesses casos é
-    // "Data Término Vendido". Contratos Perpétuo/Renovação Automática não têm um
-    // fim real, então essa checagem não se aplica a eles.
-    const statusDuracao = (c['Status Duração'] || '').toString().trim().toLowerCase();
-    const semFimReal = statusDuracao === 'perpétuo' || statusDuracao === 'renovação automática';
-    if (!semFimReal) {
-      const termPrev = parseDataBR(c['Data Término Previsto']) || parseDataBR(c['Data Término Vendido']);
-      if (termPrev) {
-        const dias = diffDias(termPrev, refDate);
-        // <= 30: cobre tanto quem termina nos próximos 30 dias quanto quem já
-        // devia ter terminado e ainda não tem Data Término Real preenchida.
-        if (dias <= DIAS_MIN_SEM_TERMINO) return false;
-      }
+    // "Data Término Vendido". Aplica pra TODO mundo, inclusive Perpétuo/Renovação
+    // Automática — mesmo contrato perpétuo tem um "Término Vendido" real marcando
+    // o fim do ciclo atual (ex: DoceVille, Perpétuo, com Vendido em cima da hora).
+    const termPrev = parseDataBR(c['Data Término Previsto']) || parseDataBR(c['Data Término Vendido']);
+    if (termPrev) {
+      const dias = diffDias(termPrev, refDate);
+      // <= 30: cobre tanto quem termina nos próximos 30 dias quanto quem já
+      // devia ter terminado e ainda não tem Data Término Real preenchida.
+      if (dias <= DIAS_MIN_SEM_TERMINO) return false;
     }
 
     const inicio = parseDataBR(c['Data Inicial']);
@@ -282,9 +290,25 @@ function main() {
     termino,
   };
 
+  // ── Histórico de aplicação completo, pra aba própria (não depende do mês-alvo) ──
+  const historicoDisplay = historico
+    .map((h) => ({
+      empresa: h.empresa,
+      periodo: `${NOMES_MES[h.mes]}/${h.ano}`,
+      periodoOrd: h.ano * 12 + h.mes,
+      tipo: h.tipo,
+      status: h.status,
+      gerente: h.gerente,
+      scrumMaster: h.scrumMaster,
+      nota: h.nota,
+      classificacao: h.classificacao,
+    }))
+    .sort((a, b) => b.periodoOrd - a.periodoOrd || a.empresa.localeCompare(b.empresa, 'pt-BR'));
+
   const indexAbs = path.resolve(indexPath);
   let html = fs.readFileSync(indexAbs, 'utf8');
   html = substituiLinha(html, 'let currentSorteio = ', `let currentSorteio = ${JSON.stringify(resultado)};`);
+  html = substituiLinha(html, 'let currentHistorico = ', `let currentHistorico = ${JSON.stringify(historicoDisplay)};`);
   fs.writeFileSync(indexAbs, html, 'utf8');
 
   console.log(`\nPool NPS Aleatório: ${pool.length} elegíveis (${comSenior} com Senior, ${semSenior} sem Senior)`);
