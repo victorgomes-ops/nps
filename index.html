@@ -409,13 +409,16 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-al
 .srtbtn:hover{background:#e04f00;}
 .srtbtn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
 .srtbtn.ghost:hover{border-color:var(--light);color:var(--light);}
-table.srttable{table-layout:auto;}
-table.srttable td{white-space:normal;}
+table.srttable{table-layout:auto;border-collapse:collapse;}
+table.srttable th{border-right:1px solid rgba(255,255,255,.15);}
+table.srttable th:last-child{border-right:none;}
+table.srttable td{white-space:normal;border-right:1px solid var(--line);}
+table.srttable td:last-child{border-right:none;}
 table.srttable td:not(.num):not(.chk){text-align:left;padding-left:10px;}
 table.srttable td.chk{text-align:center;padding:6px 2px;}
 table.srttable td.chk input{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
 table.srttable td.projeto{color:var(--gray);font-size:10.5px;}
-table.srttable tr.unchecked td{opacity:.42;}
+table.srttable tr.rowsel td{background:rgba(255,91,0,.07);}
 .srt-warn{background:#FFF4EC;border:1px solid #FFD9BD;border-left:4px solid var(--orange);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--navy2);}
 .srt-warn b{color:var(--orange);}
 .srt-warn div{margin-bottom:3px;}
@@ -425,14 +428,21 @@ table.srttable tr.unchecked td{opacity:.42;}
 .statuspill.off{background:rgba(107,114,128,.16);color:var(--gray);}
 
 /* ---- Histórico de Aplicação ---- */
-.histbar{display:flex;gap:10px;align-items:center;margin:18px 0 14px;flex-wrap:wrap;}
+.histbar{display:flex;gap:10px;align-items:center;margin:18px 0 10px;flex-wrap:wrap;}
 .histsearch{flex:1;min-width:220px;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font-size:13px;font-family:inherit;color:var(--navy2);}
 .histsearch:focus{outline:none;border-color:var(--light);}
-table.histtable{table-layout:auto;}
-table.histtable td{white-space:nowrap;text-align:left;padding-left:10px;}
-table.histtable td.num{text-align:right;padding-right:14px;}
+.histfilters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.histfilters select{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;color:var(--navy2);background:#fff;cursor:pointer;}
+.histfilters select:focus{outline:none;border-color:var(--light);}
+table.histtable{table-layout:auto;border-collapse:collapse;}
+table.histtable th{border-right:1px solid rgba(255,255,255,.15);}
+table.histtable th:last-child{border-right:none;}
+table.histtable td{white-space:nowrap;text-align:center;padding:7px 12px;border-right:1px solid var(--line);}
+table.histtable td:last-child{border-right:none;}
+table.histtable td.empresa-cell{text-align:left;}
 .tag-aleatorio-hist{color:var(--orange);font-weight:700;}
 .tag-termino-hist{color:var(--light);font-weight:700;}
+.classif-divergente{color:var(--pend);font-weight:700;cursor:help;border-bottom:1.5px dotted var(--pend);}
 </style>
 </head>
 <body>
@@ -745,18 +755,36 @@ table.histtable td.num{text-align:right;padding-right:14px;}
   <button class="srtbtn ghost" onclick="exportarHistoricoCsv()">⬇ Exportar CSV</button>
  </div>
 
+ <div class="histfilters">
+  <select id="histFiltroData" onchange="renderHistorico()"><option value="">Período: todos</option></select>
+  <select id="histFiltroGerente" onchange="renderHistorico()"><option value="">Gerente: todos</option></select>
+  <select id="histFiltroTipo" onchange="renderHistorico()">
+   <option value="">Tipo: todos</option>
+   <option value="NPS Aleatório">NPS Aleatório</option>
+   <option value="NPS Término">NPS Término</option>
+  </select>
+  <select id="histFiltroNota" onchange="renderHistorico()"><option value="">Nota: todas</option></select>
+  <select id="histFiltroClassificacao" onchange="renderHistorico()">
+   <option value="">Classificação: todas</option>
+   <option value="Detrator">Detrator</option>
+   <option value="Neutro">Neutro</option>
+   <option value="Promotor">Promotor</option>
+  </select>
+  <button class="srtbtn ghost" onclick="histLimparFiltros()">Limpar filtros</button>
+ </div>
+
  <div class="gtablewrap">
   <div class="gtable-scroll">
    <table class="gtable histtable" id="histTable">
     <thead><tr>
-     <th data-col="periodo" onclick="histOrdenarPor('periodo')" style="text-align:left">Período<span class="arrow"></span></th>
-     <th data-col="empresa" onclick="histOrdenarPor('empresa')" style="text-align:left">Empresa<span class="arrow"></span></th>
-     <th data-col="tipo" onclick="histOrdenarPor('tipo')" style="text-align:left">Tipo<span class="arrow"></span></th>
-     <th data-col="status" onclick="histOrdenarPor('status')" style="text-align:left">Status<span class="arrow"></span></th>
-     <th data-col="gerente" onclick="histOrdenarPor('gerente')" style="text-align:left">Gerente<span class="arrow"></span></th>
-     <th data-col="scrumMaster" onclick="histOrdenarPor('scrumMaster')" style="text-align:left">Scrum Master<span class="arrow"></span></th>
-     <th data-col="nota" onclick="histOrdenarPor('nota')" style="text-align:right">Nota<span class="arrow"></span></th>
-     <th data-col="classificacao" onclick="histOrdenarPor('classificacao')" style="text-align:left">Classificação<span class="arrow"></span></th>
+     <th data-col="periodo" onclick="histOrdenarPor('periodo')">Período<span class="arrow"></span></th>
+     <th data-col="empresa" onclick="histOrdenarPor('empresa')">Empresa<span class="arrow"></span></th>
+     <th data-col="tipo" onclick="histOrdenarPor('tipo')">Tipo<span class="arrow"></span></th>
+     <th data-col="status" onclick="histOrdenarPor('status')">Status<span class="arrow"></span></th>
+     <th data-col="gerente" onclick="histOrdenarPor('gerente')">Gerente<span class="arrow"></span></th>
+     <th data-col="scrumMaster" onclick="histOrdenarPor('scrumMaster')">Scrum Master<span class="arrow"></span></th>
+     <th data-col="nota" onclick="histOrdenarPor('nota')">Nota<span class="arrow"></span></th>
+     <th data-col="classificacao" onclick="histOrdenarPor('classificacao')">Classificação<span class="arrow"></span></th>
     </tr></thead>
     <tbody id="histBody"></tbody>
    </table>
@@ -1171,7 +1199,7 @@ function srtLinhaTabela(r, idx, grupo, defaultChecked){
  const tr = document.createElement('tr');
  tr.dataset.grupo = grupo;
  tr.dataset.idx = idx;
- if(!defaultChecked) tr.classList.add('unchecked');
+ if(defaultChecked) tr.classList.add('rowsel');
  tr.innerHTML = `
   <td class="chk"><input type="checkbox" ${defaultChecked ? 'checked' : ''} onchange="srtToggle(this)"></td>
   <td style="font-weight:700;color:var(--navy)">${r.nomeFantasia||'—'}</td>
@@ -1186,14 +1214,14 @@ function srtLinhaTabela(r, idx, grupo, defaultChecked){
 
 function srtToggle(checkbox){
  const tr = checkbox.closest('tr');
- tr.classList.toggle('unchecked', !checkbox.checked);
+ tr.classList.toggle('rowsel', checkbox.checked);
  recalcSorteio();
 }
 
 function srtMarcarTodos(marcar){
  document.querySelectorAll('#tab-sorteio table.srttable input[type="checkbox"]').forEach(cb=>{
   cb.checked = marcar;
-  cb.closest('tr').classList.toggle('unchecked', !marcar);
+  cb.closest('tr').classList.toggle('rowsel', marcar);
  });
  recalcSorteio();
 }
@@ -1328,6 +1356,7 @@ function exportarHistoricoCsv(){
 let histSortCol = 'periodo';
 let histSortDir = 'desc';
 let histUltimaLista = [];
+let histFiltrosPreenchidos = false;
 
 function histOrdenarPor(col){
  if(histSortCol === col){ histSortDir = histSortDir === 'asc' ? 'desc' : 'asc'; }
@@ -1335,12 +1364,59 @@ function histOrdenarPor(col){
  renderHistorico();
 }
 
+function histLimparFiltros(){
+ ['histFiltro','histFiltroData','histFiltroGerente','histFiltroTipo','histFiltroNota','histFiltroClassificacao'].forEach(id=>{
+  document.getElementById(id).value = '';
+ });
+ renderHistorico();
+}
+
+// Regra padrão de classificação NPS: 0-6 Detrator, 7-8 Neutro, 9-10 Promotor.
+function classificacaoEsperada(nota){
+ if(nota===null||nota===undefined||nota==='') return null;
+ const n = Number(nota);
+ if(isNaN(n)) return null;
+ if(n<=6) return 'Detrator';
+ if(n<=8) return 'Neutro';
+ return 'Promotor';
+}
+
+function histPopulaFiltros(){
+ if(histFiltrosPreenchidos || !currentHistorico) return;
+ histFiltrosPreenchidos = true;
+
+ const periodos = [...new Map(currentHistorico.map(r=>[r.periodoOrd, r.periodo])).entries()].sort((a,b)=>b[0]-a[0]);
+ const selData = document.getElementById('histFiltroData');
+ periodos.forEach(([ord, label])=>{
+  const opt = document.createElement('option'); opt.value = ord; opt.textContent = label; selData.appendChild(opt);
+ });
+
+ const gerentes = [...new Set(currentHistorico.map(r=>r.gerente).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ const selGerente = document.getElementById('histFiltroGerente');
+ gerentes.forEach(g=>{
+  const opt = document.createElement('option'); opt.value = g; opt.textContent = g; selGerente.appendChild(opt);
+ });
+
+ const selNota = document.getElementById('histFiltroNota');
+ for(let n=10; n>=0; n--){
+  const opt = document.createElement('option'); opt.value = n; opt.textContent = n; selNota.appendChild(opt);
+ }
+}
+
 function renderHistorico(){
  if(!currentHistorico){
   document.getElementById('histBody').innerHTML = '<tr><td colspan="8" class="semreg">Histórico ainda não gerado — rode scripts/build-sorteio.mjs.</td></tr>';
   return;
  }
+ histPopulaFiltros();
+
  const termo = (document.getElementById('histFiltro').value || '').trim().toLowerCase();
+ const fData = document.getElementById('histFiltroData').value;
+ const fGerente = document.getElementById('histFiltroGerente').value;
+ const fTipo = document.getElementById('histFiltroTipo').value;
+ const fNota = document.getElementById('histFiltroNota').value;
+ const fClassificacao = document.getElementById('histFiltroClassificacao').value;
+
  let linhas = currentHistorico;
  if(termo){
   linhas = linhas.filter(r =>
@@ -1349,6 +1425,12 @@ function renderHistorico(){
    (r.scrumMaster||'').toLowerCase().includes(termo)
   );
  }
+ if(fData) linhas = linhas.filter(r => String(r.periodoOrd) === fData);
+ if(fGerente) linhas = linhas.filter(r => r.gerente === fGerente);
+ if(fTipo) linhas = linhas.filter(r => r.tipo === fTipo);
+ if(fNota) linhas = linhas.filter(r => String(r.nota) === fNota);
+ if(fClassificacao) linhas = linhas.filter(r => (r.classificacao||'').trim() === fClassificacao);
+
  const col = histSortCol, dir = histSortDir;
  const sorted = [...linhas].sort((a,b)=>{
   let av = col==='periodo' ? a.periodoOrd : a[col];
@@ -1372,15 +1454,20 @@ function renderHistorico(){
  } else {
   tbody.innerHTML = sorted.map(r=>{
    const tagClass = r.tipo==='NPS Aleatório' ? 'tag-aleatorio-hist' : r.tipo==='NPS Término' ? 'tag-termino-hist' : '';
+   const esperada = classificacaoEsperada(r.nota);
+   const divergente = esperada && r.classificacao && r.classificacao.trim() !== esperada;
+   const classifHtml = divergente
+    ? `<span class="classif-divergente" title="Nota ${r.nota} deveria ser ${esperada}">${r.classificacao} ⚠</span>`
+    : (r.classificacao || '—');
    return `<tr>
     <td>${r.periodo}</td>
-    <td style="font-weight:700;color:var(--navy)">${r.empresa||'—'}</td>
+    <td class="empresa-cell" style="font-weight:700;color:var(--navy)">${r.empresa||'—'}</td>
     <td class="${tagClass}">${r.tipo||'—'}</td>
     <td>${r.status||'—'}</td>
     <td>${r.gerente||'—'}</td>
     <td>${r.scrumMaster||'—'}</td>
     <td class="num">${r.nota===null||r.nota===undefined||r.nota===''?'—':r.nota}</td>
-    <td>${r.classificacao||'—'}</td>
+    <td>${classifHtml}</td>
    </tr>`;
   }).join('');
  }
