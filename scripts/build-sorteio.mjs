@@ -3,13 +3,15 @@
 // "NPS Aleatório" (cruzando Contratos + Usuários + Histórico de aplicação), mais
 // os projetos "NPS Término" (Data Término Real no mês anterior ao mês-alvo).
 //
-// Não reduz para uma quantidade fixa — devolve o pool inteiro, com uma sugestão
-// (campo `sugerido`) calculada garantindo cobertura de Senior e Sócio primeiro.
-// A escolha final de quem entra é feita na aba "Sorteio NPS" do index.html
-// (checkboxes), não aqui.
+// Não reduz para uma quantidade fixa — devolve o pool inteiro. Cada projeto do
+// pool é classificado por "tem Senior" (Gerente de Projeto OU Scrum Master do
+// PRÓPRIO projeto é Senior) ou não (normalmente Gerente Sócio + Scrum Pleno, ou
+// Gerente e Scrum ambos Sócio) — a aba "Sorteio NPS" do index.html mostra isso
+// como duas tabelas separadas. A escolha final de quem entra é manual
+// (checkboxes), não é sorteada aqui.
 //
 // Uso:
-//   node scripts/build-sorteio.mjs <contratos.xlsx> <usuarios.xlsx> <nps-campanha.xlsx> <AAAA-MM> [out.json]
+//   node scripts/build-sorteio.mjs <contratos.xlsx> <usuarios.xlsx> <nps-campanha.xlsx> <AAAA-MM> [index.html]
 //
 // <AAAA-MM> é o mês-alvo da campanha (ex: 2026-09 para a campanha de setembro).
 
@@ -17,7 +19,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import XLSX from 'xlsx';
 
-const QTD_SUGERIDA_ALEATORIO = 20;
 const DIAS_MIN_SEM_TERMINO = 30; // criterio 2
 const DIAS_MIN_DESDE_INICIO = 90; // criterio 3
 const MESES_COOLDOWN = 6; // criterio 4
@@ -57,15 +58,6 @@ function parseMoeda(s) {
   // formato de origem é "$4,000.00" (vírgula = milhar, ponto = decimal)
   const n = Number(s.toString().replace(/[^0-9.-]/g, ''));
   return isNaN(n) ? 0 : n;
-}
-
-function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
 }
 
 function parseContratos(filePath) {
@@ -121,21 +113,13 @@ function parseCampanhaAtual(filePath) {
   return rows.map((r) => (r['Cliente'] || '').toString().trim()).filter(Boolean);
 }
 
-// Garante que cada nome em `pessoas` tenha ao menos 1 escolhido no conjunto `escolhidosKeys`
-// (mutado in-place), sorteando entre seus candidatos elegíveis quando ainda não tem nenhum.
-// Retorna a lista de nomes sem NENHUM candidato elegível no pool (aviso pro usuário).
-function garanteCobertura(pessoas, pool, escolhidosKeys) {
-  const semCobertura = [];
-  for (const pessoa of pessoas) {
-    const candidatos = pool.filter((c) => c['Gerente de Projeto'] === pessoa || c['Scrum Master'] === pessoa);
-    if (!candidatos.length) {
-      semCobertura.push(pessoa);
-      continue;
-    }
-    if (candidatos.some((c) => escolhidosKeys.has(c['Nome Contrato']))) continue; // já coberto por outra pessoa
-    escolhidosKeys.add(shuffle(candidatos)[0]['Nome Contrato']);
-  }
-  return semCobertura;
+// Nomes em `pessoas` que não são Gerente de Projeto NEM Scrum Master de nenhum
+// projeto do pool — aviso pro usuário (ex: aquele Senior ficou sem nenhum
+// projeto elegível pra representá-lo neste mês).
+function semNenhumProjetoNoPool(pessoas, pool) {
+  return pessoas.filter(
+    (pessoa) => !pool.some((c) => c['Gerente de Projeto'] === pessoa || c['Scrum Master'] === pessoa)
+  );
 }
 
 function substituiLinha(html, prefixo, novoConteudo) {
@@ -210,16 +194,16 @@ function main() {
   });
   console.log(`Pool elegível (critérios 1-4): ${pool.length} projetos`);
 
-  // ── Critério 5: sugestão com cobertura de Senior + Sócio, completando até a meta ──
-  const escolhidosKeys = new Set();
-  const seniorSemCobertura = garanteCobertura(seniores, pool, escolhidosKeys);
-  const socioSemCobertura = garanteCobertura(socios, pool, escolhidosKeys);
+  // ── Critério 5: classifica cada projeto por "tem Senior" (Gerente OU Scrum do
+  // PRÓPRIO projeto é Senior) — não é mais uma escolha de quantidade, é uma
+  // categorização de cada linha do pool em duas tabelas. ──
+  const seniorSet = new Set(seniores);
+  const temSenior = (c) =>
+    seniorSet.has((c['Gerente de Projeto'] || '').toString().trim()) ||
+    seniorSet.has((c['Scrum Master'] || '').toString().trim());
 
-  const restante = shuffle(pool.filter((c) => !escolhidosKeys.has(c['Nome Contrato'])));
-  for (const c of restante) {
-    if (escolhidosKeys.size >= QTD_SUGERIDA_ALEATORIO) break;
-    escolhidosKeys.add(c['Nome Contrato']);
-  }
+  const seniorSemCobertura = semNenhumProjetoNoPool(seniores, pool);
+  const socioSemCobertura = semNenhumProjetoNoPool(socios, pool);
 
   const aleatorios = pool.map((c) => ({
     nomeFantasia: c['Nome Fantasia'],
@@ -228,7 +212,7 @@ function main() {
     scrumMaster: c['Scrum Master'],
     parcela: parseMoeda(c['Parcela Fechada']),
     aplicacao: 'NPS Aleatório',
-    sugerido: escolhidosKeys.has(c['Nome Contrato']),
+    temSenior: temSenior(c),
   }));
 
   // ── NPS Término: Data Término Real no mês anterior ao mês-alvo (sempre sugerido) ──
@@ -245,17 +229,16 @@ function main() {
       scrumMaster: c['Scrum Master'],
       parcela: parseMoeda(c['Parcela Fechada']),
       aplicacao: 'NPS Término',
-      sugerido: true,
     }));
 
-  const totalSugeridoAleatorio = aleatorios.filter((r) => r.sugerido).length;
+  const comSenior = aleatorios.filter((r) => r.temSenior).length;
+  const semSenior = aleatorios.length - comSenior;
 
   const resultado = {
     campanha: `${NOMES_MES[mesAlvoIdx]}/${anoAlvo}`,
     mesTermino: `${NOMES_MES[mesCorrenteIdx]}/${anoCorrenteDoMes}`,
     geradoEm: new Date().toISOString(),
     criterios: {
-      qtdSugeridaAleatorio: QTD_SUGERIDA_ALEATORIO,
       poolElegivel: pool.length,
       seniores,
       socios,
@@ -271,7 +254,7 @@ function main() {
   html = substituiLinha(html, 'let currentSorteio = ', `let currentSorteio = ${JSON.stringify(resultado)};`);
   fs.writeFileSync(indexAbs, html, 'utf8');
 
-  console.log(`\nPool NPS Aleatório: ${pool.length} elegíveis, ${totalSugeridoAleatorio} sugeridos por padrão`);
+  console.log(`\nPool NPS Aleatório: ${pool.length} elegíveis (${comSenior} com Senior, ${semSenior} sem Senior)`);
   if (seniorSemCobertura.length) console.log(`⚠ Seniores SEM nenhum projeto elegível para representá-los: ${seniorSemCobertura.join(', ')}`);
   if (socioSemCobertura.length) console.log(`⚠ Sócios SEM nenhum projeto elegível para representá-los: ${socioSemCobertura.join(', ')}`);
   console.log(`NPS Término (encerrados em ${NOMES_MES[mesCorrenteIdx]}/${anoCorrenteDoMes}): ${termino.length}`);
