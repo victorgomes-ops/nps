@@ -149,11 +149,14 @@ function main() {
     process.exit(1);
   }
   const [anoAlvo, mesAlvoNum] = mesAlvoStr.split('-').map(Number);
-  const mesAlvoIdx = mesAlvoNum - 1; // 0-11
-  const refDate = new Date(anoAlvo, mesAlvoIdx, 1);
+  const mesAlvoIdx = mesAlvoNum - 1; // 0-11 — só usado como rótulo da campanha no relatório
   const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  console.log(`Sorteio NPS — campanha de ${NOMES_MES[mesAlvoIdx]}/${anoAlvo}\n`);
+  // Tudo se baseia em HOJE (a data real de quando este script roda), igual à função
+  // HOJE() do Excel que já era usada manualmente — não no 1º dia do mês-alvo. O
+  // mês-alvo (<AAAA-MM>) só nomeia a campanha no relatório.
+  const refDate = new Date();
+  console.log(`Sorteio NPS — campanha de ${NOMES_MES[mesAlvoIdx]}/${anoAlvo} (calculado a partir de hoje, ${refDate.toLocaleDateString('pt-BR')})\n`);
 
   const contratos = parseContratos(contratosPath);
   console.log(`Contratos.xlsx: ${contratos.length} linhas`);
@@ -165,19 +168,22 @@ function main() {
   const historico = parseHistoricoAplicacao(npsPath);
   console.log(`Histórico de aplicação: ${historico.length} linhas válidas`);
 
-  // Critério 4: cooldown de 6 meses (mês-alvo - 6 até mês-alvo - 1), calendário.
+  // Mês corrente = mês de hoje (não mais derivado do mês-alvo). É o mês que ainda
+  // não foi transferido pro histórico — tudo que já está na campanha em andamento
+  // conta como "aplicado" pro cooldown.
+  const mesCorrenteIdx = refDate.getMonth();
+  const anoCorrenteDoMes = refDate.getFullYear();
+
+  // Critério 4: cooldown de 6 meses, contando o mês corrente (hoje) pra trás, calendário.
   const cooldownSet = new Set();
   const mesesCooldown = [];
-  for (let i = 1; i <= MESES_COOLDOWN; i++) {
-    const d = new Date(anoAlvo, mesAlvoIdx - i, 1);
+  for (let i = 0; i < MESES_COOLDOWN; i++) {
+    const d = new Date(anoCorrenteDoMes, mesCorrenteIdx - i, 1);
     mesesCooldown.push({ ano: d.getFullYear(), mes: d.getMonth() });
   }
   for (const h of historico) {
     if (mesesCooldown.some((m) => m.ano === h.ano && m.mes === h.mes)) cooldownSet.add(normalizaNome(h.empresa));
   }
-  // Mês corrente (ainda não transferido pro histórico): tudo que já está na campanha em andamento conta como "aplicado".
-  const mesCorrenteIdx = mesAlvoIdx - 1 >= 0 ? mesAlvoIdx - 1 : 11;
-  const anoCorrenteDoMes = mesAlvoIdx - 1 >= 0 ? anoAlvo : anoAlvo - 1;
   const clientesCampanhaAtual = parseCampanhaAtual(npsPath);
   clientesCampanhaAtual.forEach((c) => cooldownSet.add(normalizaNome(c)));
   console.log(`Cooldown (últimos ${MESES_COOLDOWN} meses + campanha em andamento de ${NOMES_MES[mesCorrenteIdx]}/${anoCorrenteDoMes}): ${cooldownSet.size} empresas excluídas`);
