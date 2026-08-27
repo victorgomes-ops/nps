@@ -95,9 +95,21 @@ function parseHistoricoAplicacao(filePath) {
       const empresa = (r['Empresa'] || '').toString().trim();
       const periodo = r['Período'];
       if (!empresa || !tipo) return null;
-      const data = typeof periodo === 'number' ? excelSerialToDate(periodo) : parseDataBR(periodo);
-      if (!data) return null;
-      return { empresa, tipo, ano: data.getFullYear(), mes: data.getMonth() }; // mes: 0-11
+      // excelSerialToDate ancora em meia-noite UTC — usar getUTC*() aqui, senão em
+      // fusos negativos (Brasil, UTC-3) a data "cai" pro dia/mês anterior (ex: um
+      // Período "01/03" vira fevereiro), furando o cooldown de 6 meses por 1 mês.
+      let ano, mes;
+      if (typeof periodo === 'number') {
+        const data = excelSerialToDate(periodo);
+        ano = data.getUTCFullYear();
+        mes = data.getUTCMonth();
+      } else {
+        const data = parseDataBR(periodo);
+        if (!data) return null;
+        ano = data.getFullYear();
+        mes = data.getMonth();
+      }
+      return { empresa, tipo, ano, mes }; // mes: 0-11
     })
     .filter(Boolean);
 }
@@ -177,10 +189,20 @@ function main() {
     const status = (c['Status do Projeto'] || '').toString().trim().toLowerCase();
     if (status !== 'ativo') return false;
 
-    const termPrev = parseDataBR(c['Data Término Previsto']);
-    if (termPrev) {
-      const dias = diffDias(termPrev, refDate);
-      if (dias >= 0 && dias <= DIAS_MIN_SEM_TERMINO) return false;
+    // "Data Término Previsto" fica vazia na quase totalidade dos contratos (98% dos
+    // ativos) — quem carrega a data real prevista de encerramento nesses casos é
+    // "Data Término Vendido". Contratos Perpétuo/Renovação Automática não têm um
+    // fim real, então essa checagem não se aplica a eles.
+    const statusDuracao = (c['Status Duração'] || '').toString().trim().toLowerCase();
+    const semFimReal = statusDuracao === 'perpétuo' || statusDuracao === 'renovação automática';
+    if (!semFimReal) {
+      const termPrev = parseDataBR(c['Data Término Previsto']) || parseDataBR(c['Data Término Vendido']);
+      if (termPrev) {
+        const dias = diffDias(termPrev, refDate);
+        // <= 30: cobre tanto quem termina nos próximos 30 dias quanto quem já
+        // devia ter terminado e ainda não tem Data Término Real preenchida.
+        if (dias <= DIAS_MIN_SEM_TERMINO) return false;
+      }
     }
 
     const inicio = parseDataBR(c['Data Inicial']);
