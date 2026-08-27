@@ -205,15 +205,18 @@ function main() {
   const seniorSemCobertura = semNenhumProjetoNoPool(seniores, pool);
   const socioSemCobertura = semNenhumProjetoNoPool(socios, pool);
 
-  const aleatorios = pool.map((c) => ({
-    nomeFantasia: c['Nome Fantasia'],
-    nomeProjeto: c['Nome Contrato'],
-    gerente: c['Gerente de Projeto'],
-    scrumMaster: c['Scrum Master'],
-    parcela: parseMoeda(c['Parcela Fechada']),
-    aplicacao: 'NPS Aleatório',
-    temSenior: temSenior(c),
-  }));
+  const aleatorios = pool
+    .map((c) => ({
+      nomeFantasia: c['Nome Fantasia'],
+      nomeProjeto: c['Nome Contrato'],
+      gerente: c['Gerente de Projeto'],
+      scrumMaster: c['Scrum Master'],
+      parcela: parseMoeda(c['Parcela Fechada']),
+      statusProjeto: c['Status do Projeto'],
+      aplicacao: 'NPS Aleatório',
+      temSenior: temSenior(c),
+    }))
+    .sort((a, b) => a.statusProjeto.localeCompare(b.statusProjeto, 'pt-BR') || a.nomeFantasia.localeCompare(b.nomeFantasia, 'pt-BR'));
 
   // ── NPS Término: Data Término Real no mês anterior ao mês-alvo (sempre sugerido) ──
   const termino = contratos
@@ -228,8 +231,10 @@ function main() {
       gerente: c['Gerente de Projeto'],
       scrumMaster: c['Scrum Master'],
       parcela: parseMoeda(c['Parcela Fechada']),
+      statusProjeto: c['Status do Projeto'],
       aplicacao: 'NPS Término',
-    }));
+    }))
+    .sort((a, b) => a.statusProjeto.localeCompare(b.statusProjeto, 'pt-BR') || a.nomeFantasia.localeCompare(b.nomeFantasia, 'pt-BR'));
 
   const comSenior = aleatorios.filter((r) => r.temSenior).length;
   const semSenior = aleatorios.length - comSenior;
