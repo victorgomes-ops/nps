@@ -398,6 +398,28 @@ h2.sec.alt:before{background:var(--blue);}
 
 footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-align:center;font-size:12px;color:var(--gray);line-height:1.8;}
 @media(max-width:560px){.pctbox{display:none}.title{font-size:22px}.kpi .n{font-size:26px}.badge{display:none}}
+
+/* ---- Sorteio NPS ---- */
+.criteriosbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:18px;}
+.crititle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);margin-bottom:8px;}
+.criteriosbox ol{margin:0 0 0 18px;font-size:13px;color:var(--navy2);}
+.criteriosbox li{margin-bottom:4px;}
+.srtactions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 8px;}
+.srtbtn{background:var(--orange);color:#fff;border:none;border-radius:9px;padding:11px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;}
+.srtbtn:hover{background:#e04f00;}
+.srtbtn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+.srtbtn.ghost:hover{border-color:var(--light);color:var(--light);}
+table.srttable{table-layout:auto;}
+table.srttable td{white-space:normal;}
+table.srttable td:not(.num):not(.chk){text-align:left;padding-left:10px;}
+table.srttable td.chk{text-align:center;padding:6px 2px;}
+table.srttable td.chk input{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
+table.srttable td.projeto{color:var(--gray);font-size:10.5px;}
+table.srttable tr.unchecked td{opacity:.42;}
+.srt-warn{background:#FFF4EC;border:1px solid #FFD9BD;border-left:4px solid var(--orange);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--navy2);}
+.srt-warn b{color:var(--orange);}
+.srt-warn div{margin-bottom:3px;}
+.srt-warn div:last-child{margin-bottom:0;}
 </style>
 </head>
 <body>
@@ -410,6 +432,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-al
   <button class="tabbtn active" id="tabbtn-cobranca" onclick="showTab('cobranca')">📋 Cobrança</button>
   <button class="tabbtn" id="tabbtn-gerencial" onclick="showTab('gerencial')">📊 Gerencial</button>
   <button class="tabbtn" id="tabbtn-semaloc" onclick="showTab('semaloc')">⚠️ Sem Alocação <span class="tabcount" id="tabCountSemAloc"></span></button>
+  <button class="tabbtn" id="tabbtn-sorteio" onclick="showTab('sorteio')">🎲 Sorteio NPS</button>
  </div>
 </header>
 <div class="wrap">
@@ -593,6 +616,85 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-al
  </div>
 </div>
 
+<!-- ===================== ABA SORTEIO NPS ===================== -->
+<div class="tabpanel" id="tab-sorteio">
+ <div class="title">Sorteio NPS</div>
+ <div class="sub" id="srtSub">Pool de projetos elegíveis para a próxima campanha, mais os projetos encerrados no mês. Marque quem efetivamente vai receber a pesquisa e valide.</div>
+
+ <div class="criteriosbox">
+  <div class="crititle">Critérios do NPS Aleatório</div>
+  <ol>
+   <li>O projeto deve estar <b>ativo</b> (e não ser projeto interno da PWR)</li>
+   <li>Não deve ter data de término prevista nos próximos 30 dias</li>
+   <li>No mínimo 90 dias desde a data de início</li>
+   <li>Não aplicado NPS (Aleatório ou Término) com a empresa nos últimos 6 meses</li>
+   <li>Ao menos um projeto de cada Senior e cada Sócio ativo, quando existir candidato elegível</li>
+  </ol>
+ </div>
+
+ <div id="srtAvisos"></div>
+
+ <div class="kpis">
+  <div class="kpi"><div class="n" id="srtKpiSelecionados">-</div><div class="l">Selecionados</div></div>
+  <div class="kpi"><div class="n" id="srtKpiPool">-</div><div class="l">Pool elegível (Aleatório)</div></div>
+  <div class="kpi"><div class="n" id="srtKpiTermino">-</div><div class="l">NPS Término no mês</div></div>
+  <div class="kpi"><div class="n" id="srtKpiValor">-</div><div class="l">Valor selecionado</div></div>
+ </div>
+
+ <div class="srtactions">
+  <button class="srtbtn ghost" onclick="srtMarcarTodos(true)">Marcar todos</button>
+  <button class="srtbtn ghost" onclick="srtMarcarTodos(false)">Desmarcar todos</button>
+  <button class="srtbtn ghost" onclick="srtAplicarSugestao()">Voltar à sugestão</button>
+  <button class="srtbtn" onclick="validarSorteio()">✓ Validar sorteio</button>
+ </div>
+
+ <div class="gtable-title" style="margin-top:28px">NPS Aleatório <span class="gtable-count" id="srtCountAleatorio"></span></div>
+ <div class="gtablewrap">
+  <div class="gtable-scroll">
+   <table class="gtable srttable" id="srtTableAleatorio">
+    <thead><tr>
+     <th style="width:30px"></th>
+     <th style="text-align:left">Nome Fantasia</th>
+     <th style="text-align:left">Projeto</th>
+     <th style="text-align:left">Gerente</th>
+     <th style="text-align:left">Scrum Master</th>
+     <th style="text-align:right">Parcela</th>
+    </tr></thead>
+    <tbody id="srtBodyAleatorio"></tbody>
+   </table>
+  </div>
+ </div>
+
+ <div class="gtable-title" style="margin-top:22px">NPS Término — encerrados no mês <span class="gtable-count" id="srtCountTermino"></span></div>
+ <div class="gtablewrap">
+  <div class="gtable-scroll">
+   <table class="gtable srttable" id="srtTableTermino">
+    <thead><tr>
+     <th style="width:30px"></th>
+     <th style="text-align:left">Nome Fantasia</th>
+     <th style="text-align:left">Projeto</th>
+     <th style="text-align:left">Gerente</th>
+     <th style="text-align:left">Scrum Master</th>
+     <th style="text-align:right">Parcela</th>
+    </tr></thead>
+    <tbody id="srtBodyTermino"></tbody>
+   </table>
+  </div>
+ </div>
+
+ <div id="srtValidado" style="display:none;margin-top:28px">
+  <div class="gtable-title">Sorteio validado <span class="gtable-count" id="srtValidadoHora"></span></div>
+  <div class="coringa" id="shot_srtValidado">
+   <div class="clbl" id="srtValidadoTitulo">-</div>
+   <pre id="srtValidadoTxt"></pre>
+  </div>
+  <div class="actionrow" style="margin-top:10px">
+   <button class="actbtn shot" onclick="shot('srtValidado',this)">📷 Copiar print (p/ WhatsApp)</button>
+   <button class="actbtn txt" onclick="cp('srtValidadoTxt',this)">📋 Copiar texto</button>
+  </div>
+ </div>
+</div>
+
  <footer>
   <div><b>PWR Gestão Tech</b> — Nunca Parar</div>
   <div>pwrgestao.com &nbsp;|&nbsp; WhatsApp: (85) 9693-8483 &nbsp;|&nbsp; CNPJ: 32.254.106/0001-08</div>
@@ -624,6 +726,8 @@ let currentAloc = [{"Consultor":"Thiago Crompton","Mentor":"Emerson Bedeschi","R
 // Base de Usuários: Set com nomes dos colaboradores ATIVOS (Ativo = "Sim")
 // null = base não carregada (não filtra ninguém)
 let currentUsers = new Set(["Amanda Lima","Amir Christoffel","Ana Letícia","Antonio Elias","Arthur Loiola","Barbara Gomes","Beatriz Alves","Beatriz Gomes","Bruno Henrique","Bruno Magalhães","Caio Breno","Caio Machado","Carine Alcantara","Caroline Caliope","Cleiton Farias","Daiane Lima","Danilo Castelo","Debora Nunes","Diego Croco","Diego Lobo","Eduarda Gomes","Eduardo Bayma","Elias Vilela","Elicia Moraes","Eliomar Lobo","Emerson Bedeschi","Eric Galvão","Eric Iechaia","Felipe Lemos","Felipe Vivona","Flavia Menezes","Flávio Lima","Francisco das Chagas","Francisco Vanderlei","Gabriel Cinato","Gabriel Freitas","Gabriel Militão","Giovanna Cambui","Guilherme Costa","Guilherme Dias","Gustavo Lima","Halanderson Juca","Henry Felberg","Higor Alves","Ingrid Kelly","Izabela Damasceno","Jamile Barreto","Jamile Borges","Jessica Bueno","Jhony Wérmeson","Joao Araujo","Joao Franco","Joel Valente","Juan Gadelha","Juliana Oliveira","Julia Teixeira","Kalil Santiago","Kamily Rachi","Klisman Sena","Lais Moura","Larissa Damasceno","Leonardo Cestari","Leonardo Santos","Leyla Sobral","Luana Almeida","Lucas Brinati","Lucas Freire","Lucas Santos","Luis Paulo","Manuelle Noronha","Mariana Barboza","Mateus Miranda","Mathaus Cruz","Matheus Freitas","Matheus Lima","Matheus lopes","Matheus Luiz","Maycom Barbosa","Miguel Dyna","Paula Castro","Paulo Silva","Paulo Vitor","Pedro Braga","Pedro Fernandes","Pedro Maciel","Pedro Medina","Pedro Vinicius","Raduán Melo","Rafael Honorato","Rafael Telles","Sâmya Aguiar","Sandy Lino","Stefane Lima","Tamires Leal","Thais Andrade","Thalis Rebouças","Thiago Crompton","Tiago Fialho","Valter Rosa","Vander Rosa","Victor Gomes","Victor Lopes","Victor Quindere","Victor Viana","Vinicius Cavalcante","Vinicius Correia","Wadrian Almeida","Willyan Ferreira","Wilson Sá"]);
+
+let currentSorteio = {"campanha":"Setembro/2026","mesTermino":"Agosto/2026","geradoEm":"2026-08-27T18:46:35.090Z","criterios":{"qtdSugeridaAleatorio":20,"poolElegivel":78,"seniores":["Barbara Gomes","Bruno Henrique","Bruno Magalhães","Elias Vilela","Emerson Bedeschi","Francisco Vanderlei","Lucas Brinati","Pedro Fernandes","Victor Lopes","Victor Viana"],"socios":["Eduardo Bayma","Kalil Santiago","Leonardo Santos","Miguel Dyna","Paulo Vitor","Raduán Melo","Wilson Sá"],"seniorSemCobertura":[],"socioSemCobertura":[]},"aleatorios":[{"nomeFantasia":"3G Engenharia","nomeProjeto":"3G Engenharia","gerente":"Bruno Magalhães","scrumMaster":"Bruno Magalhães","parcela":11500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"3G Engenharia","nomeProjeto":"3G Engenharia - Acompanhamento","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":5000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Atual Labs","nomeProjeto":"Atual Labs","gerente":"Kalil Santiago","scrumMaster":"Kalil Santiago","parcela":6000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Belém Transportes","nomeProjeto":"Belém Transportes","gerente":"Francisco Vanderlei","scrumMaster":"Rafael Honorato","parcela":8500,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Bentô","nomeProjeto":"Bentô","gerente":"Eduardo Bayma","scrumMaster":"Victor Viana","parcela":14740.29,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Bentô","nomeProjeto":"Bentô - Acompanhamento ACG","gerente":"Kalil Santiago","scrumMaster":"Halanderson Juca","parcela":3200,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Bom Pastor","nomeProjeto":"Bom Pastor","gerente":"Miguel Dyna","scrumMaster":"Bruno Henrique","parcela":7719.8,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"Capital Upgrade - Espião","gerente":"Pedro Fernandes","scrumMaster":"Pedro Fernandes","parcela":3000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Casa Di Campo","nomeProjeto":"Casa Di Campo - ACG","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":3012,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Caspe Contabilidade","nomeProjeto":"Caspe Contabilidade - BI","gerente":"Miguel Dyna","scrumMaster":"Eliomar Lobo","parcela":3500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - Academia de Resultados","gerente":"Emerson Bedeschi","scrumMaster":"Emerson Bedeschi","parcela":5500,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - Academia de Vendas","gerente":"Emerson Bedeschi","scrumMaster":"Emerson Bedeschi","parcela":5500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - ACG","gerente":"Kalil Santiago","scrumMaster":"Halanderson Juca","parcela":11000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - PAE","gerente":"Miguel Dyna","scrumMaster":"Miguel Dyna","parcela":5714.28,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - Restaurante","gerente":"Leonardo Santos","scrumMaster":"Jessica Bueno","parcela":9000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CAUP","nomeProjeto":"CAUP - Tech","gerente":"Miguel Dyna","scrumMaster":"Eric Iechaia","parcela":4400,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Cavanis Cleaning","nomeProjeto":"Cavanis Cleaning","gerente":"Pedro Fernandes","scrumMaster":"Vinicius Correia","parcela":3806.4,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Centro Médico Maurício Carvalho","nomeProjeto":"Centro Medico Mauricio Carvalho","gerente":"Wilson Sá","scrumMaster":"Elias Vilela","parcela":12500,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Centro Médico Maurício Carvalho","nomeProjeto":"Centro Medico Mauricio Carvalho - Acompanhamento ACG","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":4000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Centro Médico Maurício Carvalho","nomeProjeto":"Centro Medico Mauricio Carvalho - Estruturação","gerente":"Wilson Sá","scrumMaster":"Lucas Brinati","parcela":6178,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CIGEL","nomeProjeto":"CIGEL","gerente":"Miguel Dyna","scrumMaster":"Bruno Henrique","parcela":7000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"3Z Soluções","nomeProjeto":"Clickfly - Parceria Tech","gerente":"Miguel Dyna","scrumMaster":"Eric Iechaia","parcela":337.66,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Construnova","nomeProjeto":"Construnova","gerente":"Bruno Magalhães","scrumMaster":"Bruno Magalhães","parcela":8818.36,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"CS Rações","nomeProjeto":"CS Distribuidora - ACG","gerente":"Kalil Santiago","scrumMaster":"Danilo Castelo","parcela":3030.76,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Distribuidora Machado","nomeProjeto":"Distribuidora Machado","gerente":"Kalil Santiago","scrumMaster":"Halanderson Juca","parcela":3200,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"DoceVille","nomeProjeto":"DoceVille","gerente":"Eduardo Bayma","scrumMaster":"Diego Lobo","parcela":4360,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"DoceVille","nomeProjeto":"DoceVille - Comercial","gerente":"Pedro Fernandes","scrumMaster":"Pedro Fernandes","parcela":3700,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Medcenter - Holding","nomeProjeto":"Dr. Almir - Planejamento Patrimonial","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":4000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Dr João Paulo","nomeProjeto":"Dr Joao Paulo - Planejamento Patrimonial","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":7500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Effort e Amaral Engenharia","nomeProjeto":"Effort e Amaral - Alinhamento Societário","gerente":"Victor Lopes","scrumMaster":"Halanderson Juca","parcela":9275.38,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Ercole Spada Neto","nomeProjeto":"Ercole Spada - Inventário","gerente":"Kalil Santiago","scrumMaster":"Halanderson Juca","parcela":2000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Florense","nomeProjeto":"Florense","gerente":"Bruno Magalhães","scrumMaster":"Lucas Freire","parcela":7250,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Rodrigo Miranda","nomeProjeto":"Grupo Collab","gerente":"Raduán Melo","scrumMaster":"Raduán Melo","parcela":12000,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Hospital Veterinário Popular","nomeProjeto":"Hospital Veterinário Popular - Gestão","gerente":"Bruno Henrique","scrumMaster":"Pedro Fernandes","parcela":6824,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Grupo Illa Mare","nomeProjeto":"Illa Mare","gerente":"Eduardo Bayma","scrumMaster":"Diego Lobo","parcela":14000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Instituto FOT","nomeProjeto":"Instituto TechRegen","gerente":"Victor Lopes","scrumMaster":"Danilo Castelo","parcela":2000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Iséletrica","nomeProjeto":"Iselétrica","gerente":"Miguel Dyna","scrumMaster":"Mathaus Cruz","parcela":6407.16,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Itamaraty","nomeProjeto":"Itamaraty","gerente":"Pedro Fernandes","scrumMaster":"Pedro Fernandes","parcela":5200,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"J. Patrício","nomeProjeto":"J. Patrício","gerente":"Miguel Dyna","scrumMaster":"Rafael Honorato","parcela":7350,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"J. Patrício","nomeProjeto":"J. Patrício - BI","gerente":"Miguel Dyna","scrumMaster":"Eliomar Lobo","parcela":200,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"J. Patrício","nomeProjeto":"J. Patrício - TEC","gerente":"Miguel Dyna","scrumMaster":"Eric Iechaia","parcela":300,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Karams","nomeProjeto":"Karams - ACG Full","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":6035.41,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Karams","nomeProjeto":"Karams - Gestão","gerente":"Raduán Melo","scrumMaster":"Barbara Gomes","parcela":16009.87,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Lotérica Aldeota","nomeProjeto":"Lotérica Aldeota","gerente":"Eduardo Bayma","scrumMaster":"Bruno Henrique","parcela":5200,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Making Soluções","nomeProjeto":"Making Soluções - Assessoria Jurídica","gerente":"Victor Lopes","scrumMaster":"Danilo Castelo","parcela":4500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Mandala","nomeProjeto":"Mandala - Gestão","gerente":"Leonardo Santos","scrumMaster":"Raduán Melo","parcela":19400,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Mandala","nomeProjeto":"Mandala - Planejamento Patrimonial","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":9464.6,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Mandala","nomeProjeto":"Mandala - Recuperação de Créditos","gerente":"Kalil Santiago","scrumMaster":"Danilo Castelo","parcela":0,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Mandala","nomeProjeto":"Mandala - TEC","gerente":"Miguel Dyna","scrumMaster":"Eliomar Lobo","parcela":450,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Medcenter - Holding","nomeProjeto":"Medcenter - ACG Holding","gerente":"Kalil Santiago","scrumMaster":"Halanderson Juca","parcela":3000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Menu Brands","nomeProjeto":"Menu Brands - Organizacional","gerente":"Eduardo Bayma","scrumMaster":"Beatriz Alves","parcela":7500,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Nordeste Cordis","nomeProjeto":"Nordeste Cordis","gerente":"Francisco Vanderlei","scrumMaster":"Victor Viana","parcela":12944.44,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"One Play","nomeProjeto":"One Play - Gestão","gerente":"Leonardo Santos","scrumMaster":"Leonardo Santos","parcela":10500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Ono Mar","nomeProjeto":"Ono Mar","gerente":"Elias Vilela","scrumMaster":"Lucas Freire","parcela":8660,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Grupo Ora Telecom","nomeProjeto":"Ora Telecom","gerente":"Leonardo Santos","scrumMaster":"Barbara Gomes","parcela":16250,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Óticas Diniz - Cariri","nomeProjeto":"Óticas Diniz - Cariri","gerente":"Wilson Sá","scrumMaster":"Wilson Sá","parcela":6300,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Picanha do Jonas","nomeProjeto":"Picanha do Jonas","gerente":"Elias Vilela","scrumMaster":"Lucas Freire","parcela":12300,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Piso Novo","nomeProjeto":"Piso Novo - ACG","gerente":"Kalil Santiago","scrumMaster":"Danilo Castelo","parcela":1639.45,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Plastsan","nomeProjeto":"Plastsan","gerente":"Miguel Dyna","scrumMaster":"Paula Castro","parcela":8750,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Point Center","nomeProjeto":"Point Center - Financeiro","gerente":"Lucas Brinati","scrumMaster":"Lucas Brinati","parcela":3500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Prime Sol Energia","nomeProjeto":"Prime Sol Energia","gerente":"Paulo Vitor","scrumMaster":"Barbara Gomes","parcela":7500,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Quintanda São Jerônimo","nomeProjeto":"Quintanda São Jerônimo","gerente":"Victor Viana","scrumMaster":"Victor Viana","parcela":7155,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Santana","nomeProjeto":"Santana","gerente":"Wilson Sá","scrumMaster":"Flavia Menezes","parcela":5000,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"Santa Praia","nomeProjeto":"Santa Praia","gerente":"Lucas Brinati","scrumMaster":"Joao Araujo","parcela":9000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Síntese","nomeProjeto":"Síntese","gerente":"Francisco Vanderlei","scrumMaster":"Rafael Honorato","parcela":8000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"S&M Distribuidora","nomeProjeto":"S&M Distribuidora","gerente":"Leonardo Santos","scrumMaster":"Joao Araujo","parcela":8100,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Stuart Construction","nomeProjeto":"Stuart Construction","gerente":"Pedro Fernandes","scrumMaster":"Vinicius Correia","parcela":5000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Sueli","nomeProjeto":"Sueli - Assessoria estratégica","gerente":"Raduán Melo","scrumMaster":"Raduán Melo","parcela":6000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Suljett","nomeProjeto":"Suljett","gerente":"Raduán Melo","scrumMaster":"Raduán Melo","parcela":10500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Teles e Falchi Advocacia","nomeProjeto":"Teles e Falchi","gerente":"Pedro Fernandes","scrumMaster":"Rafael Honorato","parcela":5000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"TLF Jeans","nomeProjeto":"TLF Jeans - Dashboard","gerente":"Miguel Dyna","scrumMaster":"Eliomar Lobo","parcela":500,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"TLF Jeans","nomeProjeto":"TLF Jeans - TEC","gerente":"Miguel Dyna","scrumMaster":"Eliomar Lobo","parcela":450,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Tubonord","nomeProjeto":"Tubocone","gerente":"Miguel Dyna","scrumMaster":"Beatriz Alves","parcela":25000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"Tubocone","nomeProjeto":"Tubocone - SIG","gerente":"Miguel Dyna","scrumMaster":"Eric Iechaia","parcela":10000,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"VM Empreendimentos","nomeProjeto":"VM Empreendimentos","gerente":"Leonardo Santos","scrumMaster":"Joao Franco","parcela":11950,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"ISPCORP","nomeProjeto":"WHG / ISPCORP","gerente":"Lucas Brinati","scrumMaster":"Lucas Brinati","parcela":5560,"aplicacao":"NPS Aleatório","sugerido":true},{"nomeFantasia":"World Glass","nomeProjeto":"World Glass","gerente":"Miguel Dyna","scrumMaster":"Thiago Crompton","parcela":6742.43,"aplicacao":"NPS Aleatório","sugerido":false},{"nomeFantasia":"YOOU Group","nomeProjeto":"YOOU Group - Partnership","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":3800,"aplicacao":"NPS Aleatório","sugerido":true}],"termino":[{"nomeFantasia":"Grupo MVA","nomeProjeto":"ALLMA MOVE - Registro de Marca","gerente":"Victor Lopes","scrumMaster":"Victor Lopes","parcela":1850,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Casa Di Campo","nomeProjeto":"Casa Di Campo","gerente":"Miguel Dyna","scrumMaster":"Mathaus Cruz","parcela":10500,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Casa Di Campo","nomeProjeto":"Casa Di Campo - Comercial","gerente":"Leonardo Santos","scrumMaster":"Raduán Melo","parcela":10700,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Dra. Telma Justa","nomeProjeto":"Dra. Telma Justa","gerente":"Kalil Santiago","scrumMaster":"Kalil Santiago","parcela":5008.98,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Drive Car","nomeProjeto":"Drive Car","gerente":"Pedro Fernandes","scrumMaster":"Victor Viana","parcela":8794.92,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Fiducial Imobiliária","nomeProjeto":"Fiducial Imobiliária - ACG","gerente":"Kalil Santiago","scrumMaster":"Victor Lopes","parcela":5000,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Prover Saude","nomeProjeto":"Prover Saude","gerente":"Raduán Melo","scrumMaster":"Emerson Bedeschi","parcela":12500,"aplicacao":"NPS Término","sugerido":true},{"nomeFantasia":"Termaco","nomeProjeto":"Termaco","gerente":"Victor Lopes","scrumMaster":"Victor Lopes","parcela":4500,"aplicacao":"NPS Término","sugerido":true}]};
 
 // Filtra a base de alocações removendo colaboradores desligados
 function filtrarAloc(alocRows){
@@ -987,6 +1091,133 @@ function buildCard(d, i){
  return card;
 }
 
+// ---- Aba Sorteio NPS ----
+function fmtMoedaSrt(n){
+ return 'R$ ' + (n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function srtLinhaTabela(r, idx, grupo){
+ const tr = document.createElement('tr');
+ tr.dataset.grupo = grupo;
+ tr.dataset.idx = idx;
+ if(!r.sugerido) tr.classList.add('unchecked');
+ tr.innerHTML = `
+  <td class="chk"><input type="checkbox" ${r.sugerido ? 'checked' : ''} onchange="srtToggle(this)"></td>
+  <td style="font-weight:700;color:var(--navy)">${r.nomeFantasia||'—'}</td>
+  <td class="projeto">${r.nomeProjeto||'—'}</td>
+  <td>${r.gerente||'—'}</td>
+  <td>${r.scrumMaster||'—'}</td>
+  <td class="num">${fmtMoedaSrt(r.parcela)}</td>
+ `;
+ return tr;
+}
+
+function srtToggle(checkbox){
+ const tr = checkbox.closest('tr');
+ tr.classList.toggle('unchecked', !checkbox.checked);
+ recalcSorteio();
+}
+
+function srtMarcarTodos(marcar){
+ document.querySelectorAll('#tab-sorteio table.srttable input[type="checkbox"]').forEach(cb=>{
+  cb.checked = marcar;
+  cb.closest('tr').classList.toggle('unchecked', !marcar);
+ });
+ recalcSorteio();
+}
+
+function srtAplicarSugestao(){
+ if(!currentSorteio) return;
+ document.querySelectorAll('#srtBodyAleatorio tr').forEach(tr=>{
+  const r = currentSorteio.aleatorios[Number(tr.dataset.idx)];
+  const cb = tr.querySelector('input');
+  cb.checked = r.sugerido;
+  tr.classList.toggle('unchecked', !r.sugerido);
+ });
+ document.querySelectorAll('#srtBodyTermino tr').forEach(tr=>{
+  const cb = tr.querySelector('input');
+  cb.checked = true;
+  tr.classList.remove('unchecked');
+ });
+ recalcSorteio();
+ document.getElementById('srtValidado').style.display = 'none';
+}
+
+function srtSelecionados(){
+ const ler = (bodyId, lista) => [...document.querySelectorAll('#'+bodyId+' tr')]
+  .filter(tr => tr.querySelector('input').checked)
+  .map(tr => lista[Number(tr.dataset.idx)]);
+ return {
+  aleatorio: currentSorteio ? ler('srtBodyAleatorio', currentSorteio.aleatorios) : [],
+  termino: currentSorteio ? ler('srtBodyTermino', currentSorteio.termino) : [],
+ };
+}
+
+function recalcSorteio(){
+ const {aleatorio, termino} = srtSelecionados();
+ const todos = [...aleatorio, ...termino];
+ document.getElementById('srtKpiSelecionados').textContent = todos.length;
+ document.getElementById('srtKpiValor').textContent = fmtMoedaSrt(todos.reduce((s,r)=>s+(r.parcela||0),0));
+}
+
+function renderSorteio(){
+ if(!currentSorteio){
+  document.getElementById('srtAvisos').innerHTML = '<div class="emptybox">Sorteio ainda não gerado — rode <code>scripts/build-sorteio.mjs</code> para esta campanha.</div>';
+  return;
+ }
+ const d = currentSorteio;
+ document.getElementById('srtSub').textContent = `Campanha de ${d.campanha} — NPS Término considera projetos encerrados em ${d.mesTermino}. Marque quem vai efetivamente receber a pesquisa e valide.`;
+
+ document.getElementById('srtKpiPool').textContent = d.criterios.poolElegivel;
+ document.getElementById('srtKpiTermino').textContent = d.termino.length;
+ document.getElementById('srtCountAleatorio').textContent = d.aleatorios.length + ' elegíveis';
+ document.getElementById('srtCountTermino').textContent = d.termino.length;
+
+ const avisos = [];
+ if(d.criterios.seniorSemCobertura.length) avisos.push(`<div>⚠ <b>Senior sem projeto elegível para representá-lo:</b> ${d.criterios.seniorSemCobertura.join(', ')}</div>`);
+ if(d.criterios.socioSemCobertura.length) avisos.push(`<div>⚠ <b>Sócio sem projeto elegível para representá-lo:</b> ${d.criterios.socioSemCobertura.join(', ')}</div>`);
+ document.getElementById('srtAvisos').innerHTML = avisos.length ? `<div class="srt-warn">${avisos.join('')}</div>` : '';
+
+ const bodyAleatorio = document.getElementById('srtBodyAleatorio');
+ bodyAleatorio.innerHTML = '';
+ d.aleatorios.forEach((r,i)=> bodyAleatorio.appendChild(srtLinhaTabela(r, i, 'aleatorio')));
+
+ const bodyTermino = document.getElementById('srtBodyTermino');
+ bodyTermino.innerHTML = '';
+ d.termino.forEach((r,i)=> bodyTermino.appendChild(srtLinhaTabela(r, i, 'termino')));
+
+ recalcSorteio();
+}
+
+function validarSorteio(){
+ const {aleatorio, termino} = srtSelecionados();
+ const todos = [...aleatorio, ...termino];
+ if(!todos.length){ alert('Marque pelo menos um projeto antes de validar.'); return; }
+
+ const clientes = new Set(todos.map(r=>(r.nomeFantasia||'').trim().toUpperCase()));
+ const valor = todos.reduce((s,r)=>s+(r.parcela||0),0);
+ const agora = new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+ const linhas = [
+  `Sorteio NPS — ${currentSorteio.campanha}`,
+  ``,
+  `NPS Aleatório (${aleatorio.length}):`,
+  ...aleatorio.map(r=>`• ${r.nomeFantasia} — ${r.nomeProjeto} (${r.gerente||'sem gerente'})`),
+  ``,
+  `NPS Término (${termino.length}):`,
+  ...termino.map(r=>`• ${r.nomeFantasia} — ${r.nomeProjeto} (${r.gerente||'sem gerente'})`),
+  ``,
+  `Total: ${todos.length} projetos · ${clientes.size} clientes · ${fmtMoedaSrt(valor)}`,
+ ];
+
+ document.getElementById('srtValidadoTitulo').textContent = `${currentSorteio.campanha} — validado em ${agora}`;
+ document.getElementById('srtValidadoTxt').textContent = linhas.join('\n');
+ document.getElementById('srtValidadoHora').textContent = `${todos.length} projetos`;
+ const box = document.getElementById('srtValidado');
+ box.style.display = 'block';
+ box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function renderAll(){
  const kpi = processKpi(currentNps);
  const consolidado = processConsolidado(currentNps, filtrarAloc(currentAloc));
@@ -1009,6 +1240,7 @@ function renderAll(){
 
  renderGerencial(consolidado, kpi);
  renderSemAlocacao();
+ renderSorteio();
 }
 
 // Paleta oficial PWR para o gráfico de unidades (sem verde/laranja/vermelho de status — cores de marca)

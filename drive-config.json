@@ -16,7 +16,13 @@
     "usuarios": {
       "id": "1mdwezfiSBrgDfOyPveaKMNyDTCQNF2Pa",
       "nome": "Usuarios.xlsx",
-      "observacao": "Coluna 'Ativo': Sim = colaborador ativo",
+      "observacao": "Coluna 'Ativo': Sim = colaborador ativo; coluna 'Cargo' usada pra achar Seniors/Sócios no sorteio",
+      "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
+    },
+    "contratos": {
+      "id": "1Pn5R798NnaMJty6XcXKXu-Cu0HiwFZx5",
+      "nome": "Contratos.xlsx",
+      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs",
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     }
   },
