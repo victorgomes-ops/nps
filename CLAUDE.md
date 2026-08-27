@@ -86,6 +86,37 @@ Quando o Victor pedir para **atualizar e publicar** (ou variações: "atualizar 
 3. Commit + push do `index.html` atualizado.
 4. `VERCEL_TOKEN=... node scripts/deploy-vercel.mjs` — publica em produção.
 
+## Sorteio NPS (em construção, ago/2026)
+
+Feature nova: aba "Sorteio NPS" que sorteia/seleciona projetos elegíveis pra próxima
+campanha, cruzando `Contratos.xlsx` + `Usuários.xlsx` + a aba "Histórico de
+aplicação" (dentro de `NPS - Campanha.xlsx`). Script: `scripts/build-sorteio.mjs`
+(uso: `node scripts/build-sorteio.mjs <contratos.xlsx> <usuarios.xlsx>
+<nps-campanha.xlsx> <AAAA-MM-rótulo> index.html`). Detalhes de critérios e bugs já
+corrigidos: ver histórico de commits com `sorteio` na mensagem.
+
+Três abas relacionadas:
+- **Sorteio NPS**: pool inteiro elegível, dividido em "com Senior" / "sem Senior"
+  (conforme Gerente OU Scrum Master do projeto ser Senior) + "NPS Término". Escolha
+  100% manual via checkbox — nada pré-marcado. Botão "Validar sorteio" gera a aba
+  Campanha Atual.
+- **Campanha Atual**: relatório gerencial (tabela + pivôs por Gerente/Aplicação +
+  totais) gerado pelo "Validar sorteio" — **só existe no navegador da sessão atual**,
+  não é gravado em lugar nenhum ainda.
+- **Histórico de Aplicação**: mostra as ~1364 linhas da aba real do Excel, com
+  filtros e checagem de divergência Nota×Classificação (regra: 0-6 Detrator, 7-8
+  Neutro, 9-10 Promotor).
+
+**Decisão de arquitetura importante (confirmada com o Victor em 27/ago/2026):** o
+site é 100% estático, sem backend/banco. "Finalizar campanha" (mover a campanha
+atual pro Histórico de Aplicação de verdade) e "editar uma resposta atrasada" no
+histórico **não são botões no dashboard** — são ações que o Victor pede aqui no
+chat, e que EU faço escrevendo direto na aba "Histórico de aplicação" do arquivo
+`NPS - Campanha.xlsx` no Drive (via `mcp__...__update_file` ou similar), depois
+reconstruo e republico o site. Isso evita embutir credencial de escrita do Google
+num site que a diretoria acessa. Se um dia o Victor pedir botões reais no site pra
+isso, ele confirmou que vai sinalizar explicitamente — até lá, não implementar.
+
 ## Bases do Google Drive
 
 Ver `drive-config.json` para IDs, nomes de arquivo, aba e caminho no Drive. Resumo:

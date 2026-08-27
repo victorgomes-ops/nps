@@ -443,6 +443,17 @@ table.histtable td.empresa-cell{text-align:left;}
 .tag-aleatorio-hist{color:var(--orange);font-weight:700;}
 .tag-termino-hist{color:var(--light);font-weight:700;}
 .classif-divergente{color:var(--pend);font-weight:700;cursor:help;border-bottom:1.5px dotted var(--pend);}
+
+/* ---- Campanha Atual ---- */
+.ca-warn{background:#FFF4EC;border:1px solid #FFD9BD;border-left:4px solid var(--orange);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:var(--navy2);}
+.doc-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.ca-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start;}
+@media(max-width:900px){.ca-grid{grid-template-columns:1fr;}}
+.ca-side{display:flex;flex-direction:column;gap:16px;}
+table.srttable tr.ca-tfoot td{font-weight:800;color:var(--navy);background:var(--bg);border-top:2px solid var(--line);}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.tag-aleatorio{background:rgba(255,91,0,.14);color:var(--orange);}
+.tag-termino{background:rgba(60,88,180,.14);color:var(--light);}
 </style>
 </head>
 <body>
@@ -457,6 +468,7 @@ table.histtable td.empresa-cell{text-align:left;}
   <button class="tabbtn" id="tabbtn-semaloc" onclick="showTab('semaloc')">⚠️ Sem Alocação <span class="tabcount" id="tabCountSemAloc"></span></button>
   <button class="tabbtn" id="tabbtn-sorteio" onclick="showTab('sorteio')">🎲 Sorteio NPS</button>
   <button class="tabbtn" id="tabbtn-historico" onclick="showTab('historico')">📜 Histórico de Aplicação</button>
+  <button class="tabbtn" id="tabbtn-campanha-atual" onclick="showTab('campanha-atual')">📅 Campanha Atual</button>
  </div>
 </header>
 <div class="wrap">
@@ -726,17 +738,6 @@ table.histtable td.empresa-cell{text-align:left;}
   </div>
  </div>
 
- <div id="srtValidado" style="display:none;margin-top:28px">
-  <div class="gtable-title">Sorteio validado <span class="gtable-count" id="srtValidadoHora"></span></div>
-  <div class="coringa" id="shot_srtValidado">
-   <div class="clbl" id="srtValidadoTitulo">-</div>
-   <pre id="srtValidadoTxt"></pre>
-  </div>
-  <div class="actionrow" style="margin-top:10px">
-   <button class="actbtn shot" onclick="shot('srtValidado',this)">📷 Copiar print (p/ WhatsApp)</button>
-   <button class="actbtn txt" onclick="cp('srtValidadoTxt',this)">📋 Copiar texto</button>
-  </div>
- </div>
 </div>
 
 <!-- ===================== ABA HISTÓRICO DE APLICAÇÃO ===================== -->
@@ -788,6 +789,79 @@ table.histtable td.empresa-cell{text-align:left;}
     </tr></thead>
     <tbody id="histBody"></tbody>
    </table>
+  </div>
+ </div>
+</div>
+
+<!-- ===================== ABA CAMPANHA ATUAL ===================== -->
+<div class="tabpanel" id="tab-campanha-atual">
+ <div class="title">Campanha Atual</div>
+ <div class="sub">Gerada a partir do sorteio validado — quem de fato vai receber a pesquisa de NPS neste ciclo.</div>
+
+ <div id="caEmpty" class="emptybox">
+  Nenhuma campanha validada ainda nesta sessão. Vá na aba <b>Sorteio NPS</b>, marque os projetos e clique em <b>Validar sorteio</b>.
+ </div>
+
+ <div id="caContent" style="display:none">
+  <div class="ca-warn">
+   Isso é uma prévia gerada no seu navegador — ainda não foi gravada no Histórico de Aplicação de verdade. Quando estiver certo, peça pra eu registrar oficialmente e publicar.
+  </div>
+
+  <div class="doc-title-row">
+   <div>
+    <h2 id="caTitulo" class="sec" style="margin:0">Campanha Atual</h2>
+    <div id="caSub" class="secsub" style="margin:2px 0 0"></div>
+   </div>
+   <button class="srtbtn ghost" onclick="exportarCampanhaAtualCsv()">⬇ Exportar CSV</button>
+  </div>
+
+  <div class="ca-grid">
+   <div class="gtablewrap ca-maintable">
+    <div class="gtable-scroll">
+     <table class="gtable srttable" id="caTable">
+      <thead><tr>
+       <th>Nome Fantasia</th>
+       <th>Nome Projeto</th>
+       <th>Gerente de Projeto</th>
+       <th>Scrum Master</th>
+       <th style="text-align:right">Parcela</th>
+       <th>Aplicação</th>
+      </tr></thead>
+      <tbody id="caBody"></tbody>
+     </table>
+    </div>
+   </div>
+
+   <div class="ca-side">
+    <div class="gtablewrap">
+     <div class="gtable-title" style="margin-bottom:8px">Por Gerente</div>
+     <div class="gtable-scroll">
+      <table class="gtable srttable">
+       <thead><tr><th>Gerente</th><th style="text-align:right">Aleatório</th><th style="text-align:right">Término</th><th style="text-align:right">Total</th></tr></thead>
+       <tbody id="caGerenteBody"></tbody>
+       <tfoot><tr class="ca-tfoot"><td>Total Geral</td><td class="num" id="caGerenteTotalAleatorio"></td><td class="num" id="caGerenteTotalTermino"></td><td class="num" id="caGerenteTotal"></td></tr></tfoot>
+      </table>
+     </div>
+    </div>
+
+    <div class="gtablewrap">
+     <div class="gtable-title" style="margin-bottom:8px">Tipo de Aplicação</div>
+     <table class="gtable srttable">
+      <thead><tr><th>Aplicação</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+       <tr><td>NPS Aleatório</td><td class="num" id="caApAleatorio"></td></tr>
+       <tr><td>NPS Término</td><td class="num" id="caApTermino"></td></tr>
+       <tr class="ca-tfoot"><td>Total Geral</td><td class="num" id="caApTotal"></td></tr>
+      </tbody>
+     </table>
+    </div>
+   </div>
+  </div>
+
+  <div class="kpis" style="margin-top:20px">
+   <div class="kpi"><div class="n" id="caKpiClientes">-</div><div class="l">Clientes</div></div>
+   <div class="kpi"><div class="n" id="caKpiProjetos">-</div><div class="l">Projetos</div></div>
+   <div class="kpi"><div class="n" id="caKpiValor">-</div><div class="l">Valor Total</div></div>
   </div>
  </div>
 </div>
@@ -1279,39 +1353,81 @@ function renderSorteio(){
  recalcSorteio();
 }
 
+let campanhaAtualData = null;
+
 function validarSorteio(){
  const {aleatorio, termino} = srtSelecionados();
  const todos = [...aleatorio, ...termino];
  if(!todos.length){ alert('Marque pelo menos um projeto antes de validar.'); return; }
 
+ campanhaAtualData = { campanha: currentSorteio.campanha, aleatorio, termino, validadoEm: new Date().toISOString() };
+ renderCampanhaAtual();
+ showTab('campanha-atual');
+}
+
+function renderCampanhaAtual(){
+ if(!campanhaAtualData){
+  document.getElementById('caEmpty').style.display = 'block';
+  document.getElementById('caContent').style.display = 'none';
+  return;
+ }
+ const { campanha, aleatorio, termino, validadoEm } = campanhaAtualData;
+ const todos = [...aleatorio, ...termino];
+ const agora = new Date(validadoEm).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+ document.getElementById('caTitulo').textContent = `Campanha Atual — ${campanha}`;
+ document.getElementById('caSub').textContent = `Sorteio validado em ${agora}`;
+
+ const linhasOrdenadas = [...todos].sort((a,b)=>
+  a.aplicacao !== b.aplicacao ? (a.aplicacao === 'NPS Aleatório' ? -1 : 1) : a.nomeFantasia.localeCompare(b.nomeFantasia,'pt-BR')
+ );
+ document.getElementById('caBody').innerHTML = linhasOrdenadas.map(r => `
+  <tr>
+   <td class="empresa-cell" style="font-weight:700;color:var(--navy)">${r.nomeFantasia||'—'}</td>
+   <td class="empresa-cell">${r.nomeProjeto||'—'}</td>
+   <td class="empresa-cell">${r.gerente||'—'}</td>
+   <td class="empresa-cell">${r.scrumMaster||'—'}</td>
+   <td class="num">${fmtMoedaSrt(r.parcela)}</td>
+   <td><span class="tag ${r.aplicacao==='NPS Aleatório'?'tag-aleatorio':'tag-termino'}">${r.aplicacao}</span></td>
+  </tr>
+ `).join('');
+
+ const porGerente = {};
+ todos.forEach(r=>{
+  const g = r.gerente || '(sem gerente)';
+  porGerente[g] = porGerente[g] || {aleatorio:0, termino:0};
+  if(r.aplicacao==='NPS Aleatório') porGerente[g].aleatorio++; else porGerente[g].termino++;
+ });
+ const linhasGerente = Object.entries(porGerente)
+  .map(([g,v])=>({g, ...v, total:v.aleatorio+v.termino}))
+  .sort((a,b)=> b.total-a.total || a.g.localeCompare(b.g,'pt-BR'));
+ document.getElementById('caGerenteBody').innerHTML = linhasGerente.map(r=>`
+  <tr><td class="empresa-cell">${r.g}</td><td class="num">${r.aleatorio}</td><td class="num">${r.termino}</td><td class="num" style="font-weight:800">${r.total}</td></tr>
+ `).join('');
+ document.getElementById('caGerenteTotalAleatorio').textContent = aleatorio.length;
+ document.getElementById('caGerenteTotalTermino').textContent = termino.length;
+ document.getElementById('caGerenteTotal').textContent = todos.length;
+
+ document.getElementById('caApAleatorio').textContent = aleatorio.length;
+ document.getElementById('caApTermino').textContent = termino.length;
+ document.getElementById('caApTotal').textContent = todos.length;
+
  const clientes = new Set(todos.map(r=>(r.nomeFantasia||'').trim().toUpperCase()));
- const valor = todos.reduce((s,r)=>s+(r.parcela||0),0);
- const agora = new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+ document.getElementById('caKpiClientes').textContent = clientes.size;
+ document.getElementById('caKpiProjetos').textContent = todos.length;
+ document.getElementById('caKpiValor').textContent = fmtMoedaSrt(todos.reduce((s,r)=>s+(r.parcela||0),0));
 
- const comSenior = aleatorio.filter(r=>r.temSenior);
- const semSenior = aleatorio.filter(r=>!r.temSenior);
+ document.getElementById('caEmpty').style.display = 'none';
+ document.getElementById('caContent').style.display = 'block';
+}
 
- const linhas = [
-  `Sorteio NPS — ${currentSorteio.campanha}`,
-  ``,
-  `NPS Aleatório — com Senior (${comSenior.length}):`,
-  ...comSenior.map(r=>`• ${r.nomeFantasia} — ${r.nomeProjeto} (${r.gerente||'sem gerente'} / ${r.scrumMaster||'sem scrum'})`),
-  ``,
-  `NPS Aleatório — sem Senior (${semSenior.length}):`,
-  ...semSenior.map(r=>`• ${r.nomeFantasia} — ${r.nomeProjeto} (${r.gerente||'sem gerente'} / ${r.scrumMaster||'sem scrum'})`),
-  ``,
-  `NPS Término (${termino.length}):`,
-  ...termino.map(r=>`• ${r.nomeFantasia} — ${r.nomeProjeto} (${r.gerente||'sem gerente'})`),
-  ``,
-  `Total: ${todos.length} projetos · ${clientes.size} clientes · ${fmtMoedaSrt(valor)}`,
- ];
-
- document.getElementById('srtValidadoTitulo').textContent = `${currentSorteio.campanha} — validado em ${agora}`;
- document.getElementById('srtValidadoTxt').textContent = linhas.join('\n');
- document.getElementById('srtValidadoHora').textContent = `${todos.length} projetos`;
- const box = document.getElementById('srtValidado');
- box.style.display = 'block';
- box.scrollIntoView({behavior:'smooth', block:'start'});
+function exportarCampanhaAtualCsv(){
+ if(!campanhaAtualData){ alert('Nenhuma campanha validada ainda.'); return; }
+ const linhas = [['Nome Fantasia','Nome Projeto','Gerente de Projeto','Scrum Master','Parcela','Aplicação']];
+ [...campanhaAtualData.aleatorio, ...campanhaAtualData.termino].forEach(r=>{
+  linhas.push([r.nomeFantasia, r.nomeProjeto, r.gerente||'', r.scrumMaster||'', (r.parcela||0).toFixed(2).replace('.',','), r.aplicacao]);
+ });
+ baixarCsv(`campanha-atual-${(campanhaAtualData.campanha||'').replace('/','-')}.csv`, linhas);
 }
 
 // ---- Exportação CSV (sorteio e histórico) ----
@@ -1501,6 +1617,7 @@ function renderAll(){
  renderSemAlocacao();
  renderSorteio();
  renderHistorico();
+ renderCampanhaAtual();
 }
 
 // Paleta oficial PWR para o gráfico de unidades (sem verde/laranja/vermelho de status — cores de marca)
