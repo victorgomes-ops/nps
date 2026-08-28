@@ -111,11 +111,26 @@ Três abas relacionadas:
 site é 100% estático, sem backend/banco. "Finalizar campanha" (mover a campanha
 atual pro Histórico de Aplicação de verdade) e "editar uma resposta atrasada" no
 histórico **não são botões no dashboard** — são ações que o Victor pede aqui no
-chat, e que EU faço escrevendo direto na aba "Histórico de aplicação" do arquivo
-`NPS - Campanha.xlsx` no Drive (via `mcp__...__update_file` ou similar), depois
-reconstruo e republico o site. Isso evita embutir credencial de escrita do Google
-num site que a diretoria acessa. Se um dia o Victor pedir botões reais no site pra
-isso, ele confirmou que vai sinalizar explicitamente — até lá, não implementar.
+chat. Isso evita embutir credencial de escrita do Google num site que a diretoria
+acessa. Se um dia o Victor pedir botões reais no site pra isso, ele confirmou que
+vai sinalizar explicitamente — até lá, não implementar.
+
+**Limitação real descoberta em 28/ago/2026:** as ferramentas de Google Drive
+disponíveis (`mcp__...__update_file`, `create_file`) **não permitem editar o
+conteúdo de um arquivo existente** — `update_file` só muda título/pasta,
+`create_file` só cria arquivo novo (com ID novo). Não existe uma ferramenta de
+Google Sheets pra editar célula/linha de uma planilha existente. Então "eu
+escrevo direto no Excel do Drive" (frase usada mais acima) **não é literalmente
+possível hoje** para correções de conteúdo — só pra metadata (renomear/mover).
+
+Na prática, quando o Victor pedir uma correção pontual num dado de origem (ex:
+"tira o Fulano do projeto X na base de Alocações"): baixar a base, aplicar a
+correção só no arquivo local (`data/*.xlsx`), reconstruir e publicar o
+dashboard com o dado certo — e pedir pro Victor fazer a mesma edição na
+planilha de verdade no Drive (indicando exatamente a linha/valores), já que a
+próxima vez que a base for baixada de novo, a correção "só local" se perde se
+o arquivo de origem não tiver sido corrigido também. Documentar isso claramente
+pro Victor toda vez que isso acontecer.
 
 ## Bases do Google Drive
 
