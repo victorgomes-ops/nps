@@ -20,9 +20,9 @@
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     },
     "contratos": {
-      "id": "1Pn5R798NnaMJty6XcXKXu-Cu0HiwFZx5",
+      "id": "1zI-P6Tzx7TrEb_HFuEKR9Qfm0l2rmo8x",
       "nome": "Contratos.xlsx",
-      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs",
+      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs. ATENÇÃO: diferente das outras 3 bases, esse ID já mudou pelo menos uma vez (o arquivo parece ser recriado periodicamente, não editado em cima do mesmo ID) — se o download der 'Requested entity was not found', buscar de novo por nome com search_files (parentId da pasta 'Bases SPWR' = 1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg) antes de reportar erro.",
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     }
   },
