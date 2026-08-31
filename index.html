@@ -454,6 +454,21 @@ table.srttable tr.ca-tfoot td{font-weight:800;color:var(--navy);background:var(-
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
 .tag-aleatorio{background:rgba(255,91,0,.14);color:var(--orange);}
 .tag-termino{background:rgba(60,88,180,.14);color:var(--light);}
+
+/* ---- Tabela compacta "Por Gerente" (Campanha Atual) ---- */
+table.catable{table-layout:auto;width:auto;min-width:100%;border-collapse:collapse;font-size:11px;}
+table.catable th{border-right:1px solid rgba(255,255,255,.15);cursor:pointer;user-select:none;white-space:nowrap;padding:6px 10px;}
+table.catable th:last-child{border-right:none;}
+table.catable th:hover{background:var(--blue);}
+table.catable th .arrow{opacity:0;font-size:7px;margin-left:2px;}
+table.catable th.sorted .arrow{opacity:1;}
+table.catable th.sorted{background:var(--blue);}
+table.catable td{text-align:center;padding:5px 10px;white-space:nowrap;border-right:1px solid var(--line);}
+table.catable td:last-child{border-right:none;}
+table.catable td.g-cell{text-align:left;font-weight:600;color:var(--navy);}
+table.catable tr.sem-sorteio td{background:#FFF4EC;}
+table.catable tr.sem-sorteio td.g-cell{color:var(--pend);}
+table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
 </style>
 </head>
 <body>
@@ -834,10 +849,15 @@ table.srttable tr.ca-tfoot td{font-weight:800;color:var(--navy);background:var(-
 
    <div class="ca-side">
     <div class="gtablewrap">
-     <div class="gtable-title" style="margin-bottom:8px">Por Gerente</div>
+     <div class="gtable-title" style="margin-bottom:8px">Por Gerente <span class="gtable-hint">clique na coluna pra ordenar</span></div>
      <div class="gtable-scroll">
-      <table class="gtable srttable">
-       <thead><tr><th>Gerente</th><th style="text-align:right">Aleatório</th><th style="text-align:right">Término</th><th style="text-align:right">Total</th></tr></thead>
+      <table class="gtable catable" id="caGerenteTable">
+       <thead><tr>
+        <th data-col="g" onclick="caOrdenarPorGerente('g')">Gerente<span class="arrow"></span></th>
+        <th data-col="aleatorio" onclick="caOrdenarPorGerente('aleatorio')">Aleat.<span class="arrow"></span></th>
+        <th data-col="termino" onclick="caOrdenarPorGerente('termino')">Térm.<span class="arrow"></span></th>
+        <th data-col="total" onclick="caOrdenarPorGerente('total')">Total<span class="arrow"></span></th>
+       </tr></thead>
        <tbody id="caGerenteBody"></tbody>
        <tfoot><tr class="ca-tfoot"><td>Total Geral</td><td class="num" id="caGerenteTotalAleatorio"></td><td class="num" id="caGerenteTotalTermino"></td><td class="num" id="caGerenteTotal"></td></tr></tfoot>
       </table>
@@ -1354,6 +1374,34 @@ function renderSorteio(){
 }
 
 let campanhaAtualData = null;
+let caGerenteLista = [];
+let caGerenteSortCol = 'total';
+let caGerenteSortDir = 'desc';
+
+function caOrdenarPorGerente(col){
+ if(caGerenteSortCol === col){ caGerenteSortDir = caGerenteSortDir === 'asc' ? 'desc' : 'asc'; }
+ else { caGerenteSortCol = col; caGerenteSortDir = col === 'g' ? 'asc' : 'desc'; }
+ renderCaGerenteTable();
+}
+
+function renderCaGerenteTable(){
+ const col = caGerenteSortCol, dir = caGerenteSortDir;
+ const sorted = [...caGerenteLista].sort((a,b)=>{
+  let av = a[col], bv = b[col];
+  if(typeof av === 'string'){ av = av.toLowerCase(); bv = (bv||'').toString().toLowerCase(); }
+  if(av < bv) return dir==='asc' ? -1 : 1;
+  if(av > bv) return dir==='asc' ? 1 : -1;
+  return a.g.localeCompare(b.g,'pt-BR');
+ });
+ document.getElementById('caGerenteBody').innerHTML = sorted.map(r=>`
+  <tr class="${r.isSenior && r.total===0 ? 'sem-sorteio' : ''}">
+   <td class="g-cell">${r.g}</td><td>${r.aleatorio}</td><td>${r.termino}</td><td style="font-weight:800">${r.total}</td>
+  </tr>
+ `).join('');
+ document.querySelectorAll('#caGerenteTable th').forEach(th=>{
+  th.classList.toggle('sorted', th.dataset.col === col);
+ });
+}
 
 function validarSorteio(){
  const {aleatorio, termino} = srtSelecionados();
@@ -1392,18 +1440,20 @@ function renderCampanhaAtual(){
   </tr>
  `).join('');
 
+ // Começa com TODOS os Seniores ativos (mesmo com 0/0), pra sinalizar quem ficou
+ // de fora do sorteio validado — não só quem tem pelo menos 1 projeto marcado.
+ const seniores = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.seniores) || [];
  const porGerente = {};
+ seniores.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior:true}; });
  todos.forEach(r=>{
   const g = r.gerente || '(sem gerente)';
-  porGerente[g] = porGerente[g] || {aleatorio:0, termino:0};
+  if(!porGerente[g]) porGerente[g] = {aleatorio:0, termino:0, isSenior: seniores.includes(g)};
   if(r.aplicacao==='NPS Aleatório') porGerente[g].aleatorio++; else porGerente[g].termino++;
  });
- const linhasGerente = Object.entries(porGerente)
-  .map(([g,v])=>({g, ...v, total:v.aleatorio+v.termino}))
-  .sort((a,b)=> b.total-a.total || a.g.localeCompare(b.g,'pt-BR'));
- document.getElementById('caGerenteBody').innerHTML = linhasGerente.map(r=>`
-  <tr><td class="empresa-cell">${r.g}</td><td class="num">${r.aleatorio}</td><td class="num">${r.termino}</td><td class="num" style="font-weight:800">${r.total}</td></tr>
- `).join('');
+ caGerenteLista = Object.entries(porGerente).map(([g,v])=>({g, ...v, total:v.aleatorio+v.termino}));
+ caGerenteSortCol = 'total'; caGerenteSortDir = 'desc';
+ renderCaGerenteTable();
+
  document.getElementById('caGerenteTotalAleatorio').textContent = aleatorio.length;
  document.getElementById('caGerenteTotalTermino').textContent = termino.length;
  document.getElementById('caGerenteTotal').textContent = todos.length;
