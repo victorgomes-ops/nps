@@ -166,7 +166,12 @@ function main() {
   // Tudo se baseia em HOJE (a data real de quando este script roda), igual à função
   // HOJE() do Excel que já era usada manualmente — não no 1º dia do mês-alvo. O
   // mês-alvo (<AAAA-MM>) só nomeia a campanha no relatório.
-  const refDate = new Date();
+  // Zera a hora: HOJE() do Excel é só a data, sem hora — se eu deixar a hora exata
+  // (ex: 15h), a conta de "dias até o término" fica sensível a que horas do dia eu
+  // rodei o script, arredondando pra baixo/cima de forma inconsistente perto da
+  // borda dos 30 dias (achado real: Ercole Spada dava 31 dias de manhã e 30 à tarde).
+  const agora = new Date();
+  const refDate = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
   console.log(`Sorteio NPS — campanha de ${NOMES_MES[mesAlvoIdx]}/${anoAlvo} (calculado a partir de hoje, ${refDate.toLocaleDateString('pt-BR')})\n`);
 
   const contratos = parseContratos(contratosPath);
