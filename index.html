@@ -470,6 +470,7 @@ table.catable tr.sem-sorteio td{background:#FFF4EC;}
 table.catable tr.sem-sorteio td.g-cell{color:var(--pend);}
 table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
 .cargo-tag{font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.3px;}
+.cliente-duplicado{background:#FFFBDD !important;}
 </style>
 </head>
 <body>
@@ -1430,16 +1431,26 @@ function renderCampanhaAtual(){
  const linhasOrdenadas = [...todos].sort((a,b)=>
   a.aplicacao !== b.aplicacao ? (a.aplicacao === 'NPS Aleatório' ? -1 : 1) : a.nomeFantasia.localeCompare(b.nomeFantasia,'pt-BR')
  );
- document.getElementById('caBody').innerHTML = linhasOrdenadas.map(r => `
+ // Cliente com mais de 1 projeto na lista — destaca a célula Nome Fantasia
+ // em amarelo bem leve, pra deixar visível que aquele cliente está duplicado.
+ const contagemCliente = {};
+ todos.forEach(r=>{
+  const k = (r.nomeFantasia||'').trim().toUpperCase();
+  contagemCliente[k] = (contagemCliente[k]||0) + 1;
+ });
+ document.getElementById('caBody').innerHTML = linhasOrdenadas.map(r => {
+  const duplicado = contagemCliente[(r.nomeFantasia||'').trim().toUpperCase()] > 1;
+  return `
   <tr>
-   <td class="empresa-cell" style="font-weight:700;color:var(--navy)">${r.nomeFantasia||'—'}</td>
+   <td class="empresa-cell${duplicado ? ' cliente-duplicado' : ''}" style="font-weight:700;color:var(--navy)">${r.nomeFantasia||'—'}</td>
    <td class="empresa-cell">${r.nomeProjeto||'—'}</td>
    <td class="empresa-cell">${r.gerente||'—'}</td>
    <td class="empresa-cell">${r.scrumMaster||'—'}</td>
    <td class="num">${fmtMoedaSrt(r.parcela)}</td>
    <td><span class="tag ${r.aplicacao==='NPS Aleatório'?'tag-aleatorio':'tag-termino'}">${r.aplicacao}</span></td>
   </tr>
- `).join('');
+ `;
+ }).join('');
 
  // Só Sócio e Senior (ignora Pleno/Consultor/etc mesmo que apareçam como
  // Gerente ou Scrum). Começa com TODOS os Sócios/Seniores ativos (mesmo com
@@ -1475,9 +1486,13 @@ function renderCampanhaAtual(){
  document.getElementById('caGerenteTotalTermino').textContent = termino.length;
  document.getElementById('caGerenteTotal').textContent = todos.length;
 
- document.getElementById('caApAleatorio').textContent = aleatorio.length;
- document.getElementById('caApTermino').textContent = termino.length;
- document.getElementById('caApTotal').textContent = todos.length;
+ // Clientes únicos por tipo, não linhas de projeto (um cliente com 2 projetos
+ // Aleatório conta 1 vez ali, não 2).
+ const clientesAleatorio = new Set(aleatorio.map(r=>(r.nomeFantasia||'').trim().toUpperCase()));
+ const clientesTermino = new Set(termino.map(r=>(r.nomeFantasia||'').trim().toUpperCase()));
+ document.getElementById('caApAleatorio').textContent = clientesAleatorio.size;
+ document.getElementById('caApTermino').textContent = clientesTermino.size;
+ document.getElementById('caApTotal').textContent = clientesAleatorio.size + clientesTermino.size;
 
  const clientes = new Set(todos.map(r=>(r.nomeFantasia||'').trim().toUpperCase()));
  document.getElementById('caKpiClientes').textContent = clientes.size;
