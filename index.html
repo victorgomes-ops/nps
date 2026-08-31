@@ -849,7 +849,7 @@ table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
 
    <div class="ca-side">
     <div class="gtablewrap">
-     <div class="gtable-title" style="margin-bottom:8px">Por Gerente <span class="gtable-hint">clique na coluna pra ordenar</span></div>
+     <div class="gtable-title" style="margin-bottom:8px">Por Gerente <span class="gtable-hint">conta Gerente ou Scrum do projeto · clique na coluna pra ordenar</span></div>
      <div class="gtable-scroll">
       <table class="gtable catable" id="caGerenteTable">
        <thead><tr>
@@ -1442,13 +1442,18 @@ function renderCampanhaAtual(){
 
  // Começa com TODOS os Seniores ativos (mesmo com 0/0), pra sinalizar quem ficou
  // de fora do sorteio validado — não só quem tem pelo menos 1 projeto marcado.
+ // Conta Gerente DE PROJETO OU Scrum Master — mesma regra usada pra separar
+ // "com Senior"/"sem Senior" no pool do sorteio (ser Scrum já cobre o critério 5).
  const seniores = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.seniores) || [];
  const porGerente = {};
  seniores.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior:true}; });
  todos.forEach(r=>{
-  const g = r.gerente || '(sem gerente)';
-  if(!porGerente[g]) porGerente[g] = {aleatorio:0, termino:0, isSenior: seniores.includes(g)};
-  if(r.aplicacao==='NPS Aleatório') porGerente[g].aleatorio++; else porGerente[g].termino++;
+  const pessoas = new Set([r.gerente, r.scrumMaster].filter(Boolean));
+  if(!pessoas.size) pessoas.add('(sem gerente/scrum)');
+  pessoas.forEach(p=>{
+   if(!porGerente[p]) porGerente[p] = {aleatorio:0, termino:0, isSenior: seniores.includes(p)};
+   if(r.aplicacao==='NPS Aleatório') porGerente[p].aleatorio++; else porGerente[p].termino++;
+  });
  });
  caGerenteLista = Object.entries(porGerente).map(([g,v])=>({g, ...v, total:v.aleatorio+v.termino}));
  caGerenteSortCol = 'total'; caGerenteSortDir = 'desc';
