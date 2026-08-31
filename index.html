@@ -469,6 +469,7 @@ table.catable td.g-cell{text-align:left;font-weight:600;color:var(--navy);}
 table.catable tr.sem-sorteio td{background:#FFF4EC;}
 table.catable tr.sem-sorteio td.g-cell{color:var(--pend);}
 table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
+.cargo-tag{font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.3px;}
 </style>
 </head>
 <body>
@@ -849,7 +850,7 @@ table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
 
    <div class="ca-side">
     <div class="gtablewrap">
-     <div class="gtable-title" style="margin-bottom:8px">Por Gerente <span class="gtable-hint">conta Gerente ou Scrum do projeto · clique na coluna pra ordenar</span></div>
+     <div class="gtable-title" style="margin-bottom:8px">Por Gerente <span class="gtable-hint">só Sócio e Senior · conta Gerente ou Scrum do projeto · clique pra ordenar</span></div>
      <div class="gtable-scroll">
       <table class="gtable catable" id="caGerenteTable">
        <thead><tr>
@@ -1394,8 +1395,8 @@ function renderCaGerenteTable(){
   return a.g.localeCompare(b.g,'pt-BR');
  });
  document.getElementById('caGerenteBody').innerHTML = sorted.map(r=>`
-  <tr class="${r.isSenior && r.total===0 ? 'sem-sorteio' : ''}">
-   <td class="g-cell">${r.g}</td><td>${r.aleatorio}</td><td>${r.termino}</td><td style="font-weight:800">${r.total}</td>
+  <tr class="${r.total===0 ? 'sem-sorteio' : ''}">
+   <td class="g-cell">${r.g} <span class="cargo-tag">${r.isSenior ? 'Senior' : 'Sócio'}</span></td><td>${r.aleatorio}</td><td>${r.termino}</td><td style="font-weight:800">${r.total}</td>
   </tr>
  `).join('');
  document.querySelectorAll('#caGerenteTable th').forEach(th=>{
@@ -1440,18 +1441,21 @@ function renderCampanhaAtual(){
   </tr>
  `).join('');
 
- // Começa com TODOS os Seniores ativos (mesmo com 0/0), pra sinalizar quem ficou
- // de fora do sorteio validado — não só quem tem pelo menos 1 projeto marcado.
- // Conta Gerente DE PROJETO OU Scrum Master — mesma regra usada pra separar
- // "com Senior"/"sem Senior" no pool do sorteio (ser Scrum já cobre o critério 5).
+ // Só Sócio e Senior (ignora Pleno/Consultor/etc mesmo que apareçam como
+ // Gerente ou Scrum). Começa com TODOS os Sócios/Seniores ativos (mesmo com
+ // 0/0), pra sinalizar quem ficou de fora do sorteio validado — não só quem
+ // tem pelo menos 1 projeto marcado. Conta Gerente DE PROJETO OU Scrum
+ // Master — mesma regra usada pra separar "com Senior"/"sem Senior" no pool
+ // do sorteio (ser Scrum já cobre o critério 5).
  const seniores = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.seniores) || [];
+ const socios = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.socios) || [];
+ const chave = new Set([...seniores, ...socios]);
  const porGerente = {};
- seniores.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior:true}; });
+ chave.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior: seniores.includes(nome), isSocio: socios.includes(nome)}; });
  todos.forEach(r=>{
   const pessoas = new Set([r.gerente, r.scrumMaster].filter(Boolean));
-  if(!pessoas.size) pessoas.add('(sem gerente/scrum)');
   pessoas.forEach(p=>{
-   if(!porGerente[p]) porGerente[p] = {aleatorio:0, termino:0, isSenior: seniores.includes(p)};
+   if(!chave.has(p)) return; // ignora Pleno/Consultor/etc — só Sócio e Senior
    if(r.aplicacao==='NPS Aleatório') porGerente[p].aleatorio++; else porGerente[p].termino++;
   });
  });
