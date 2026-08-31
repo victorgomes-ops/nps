@@ -1447,16 +1447,24 @@ function renderCampanhaAtual(){
  // tem pelo menos 1 projeto marcado. Conta Gerente DE PROJETO OU Scrum
  // Master — mesma regra usada pra separar "com Senior"/"sem Senior" no pool
  // do sorteio (ser Scrum já cobre o critério 5).
+ // Conta por CLIENTE (Nome Fantasia), não por projeto/contrato — um cliente
+ // com 3 contratos do mesmo gerente (ex: Centro Médico Maurício Carvalho)
+ // soma 1, não 3. Dedup por (pessoa, cliente, tipo) — Aleatório e Término
+ // do mesmo cliente contam separado, já que são aplicações diferentes.
  const seniores = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.seniores) || [];
  const socios = (currentSorteio && currentSorteio.criterios && currentSorteio.criterios.socios) || [];
  const chave = new Set([...seniores, ...socios]);
  const porGerente = {};
- chave.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior: seniores.includes(nome), isSocio: socios.includes(nome)}; });
+ chave.forEach(nome => { porGerente[nome] = {aleatorio:0, termino:0, isSenior: seniores.includes(nome), isSocio: socios.includes(nome), _vistos: new Set()}; });
  todos.forEach(r=>{
   const pessoas = new Set([r.gerente, r.scrumMaster].filter(Boolean));
+  const tipo = r.aplicacao==='NPS Aleatório' ? 'aleatorio' : 'termino';
+  const clienteKey = tipo + '|' + (r.nomeFantasia||'').trim().toUpperCase();
   pessoas.forEach(p=>{
    if(!chave.has(p)) return; // ignora Pleno/Consultor/etc — só Sócio e Senior
-   if(r.aplicacao==='NPS Aleatório') porGerente[p].aleatorio++; else porGerente[p].termino++;
+   if(porGerente[p]._vistos.has(clienteKey)) return; // mesmo cliente já contado nesse tipo
+   porGerente[p]._vistos.add(clienteKey);
+   porGerente[p][tipo]++;
   });
  });
  caGerenteLista = Object.entries(porGerente).map(([g,v])=>({g, ...v, total:v.aleatorio+v.termino}));
