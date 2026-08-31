@@ -471,6 +471,9 @@ table.catable tr.sem-sorteio td.g-cell{color:var(--pend);}
 table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
 .cargo-tag{font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.3px;}
 .cliente-duplicado{background:#FFFBDD !important;}
+table.gtable.catable-ap{width:auto;table-layout:auto;font-size:11px;}
+table.gtable.catable-ap th,table.gtable.catable-ap td{padding:6px 16px;white-space:nowrap;}
+table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{text-align:left;}
 </style>
 </head>
 <body>
@@ -867,8 +870,8 @@ table.catable tr.sem-sorteio td.g-cell::after{content:" ⚠";}
     </div>
 
     <div class="gtablewrap">
-     <div class="gtable-title" style="margin-bottom:8px">Tipo de Aplicação</div>
-     <table class="gtable srttable">
+     <div class="gtable-title" style="margin-bottom:8px">Tipo de Aplicação - Visão Cliente</div>
+     <table class="gtable catable-ap">
       <thead><tr><th>Aplicação</th><th style="text-align:right">Total</th></tr></thead>
       <tbody>
        <tr><td>NPS Aleatório</td><td class="num" id="caApAleatorio"></td></tr>
