@@ -419,10 +419,8 @@ table.srttable td.chk{text-align:center;padding:6px 2px;}
 table.srttable td.chk input{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
 table.srttable td.projeto{color:var(--gray);font-size:10.5px;}
 table.srttable tr.rowsel td{background:rgba(255,91,0,.07);}
-/* Campanha Atual: só a coluna "Nome Projeto" (2ª) pode quebrar linha; as
-   demais (Nome Fantasia, Gerente, Scrum Master, Parcela, Aplicação) não. */
+/* Campanha Atual: nenhuma coluna quebra linha, largura auto-ajustada ao conteúdo. */
 .ca-maintable table.srttable td{white-space:nowrap;}
-.ca-maintable table.srttable td:nth-child(2){white-space:normal;}
 .srt-warn{background:#FFF4EC;border:1px solid #FFD9BD;border-left:4px solid var(--orange);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--navy2);}
 .srt-warn b{color:var(--orange);}
 .srt-warn div{margin-bottom:3px;}
@@ -460,7 +458,7 @@ table.srttable tr.ca-tfoot td{font-weight:800;color:var(--navy);background:var(-
 .tag-termino{background:rgba(60,88,180,.14);color:var(--light);}
 
 /* ---- Tabela compacta "Por Gerente" (Campanha Atual) ---- */
-table.catable{table-layout:auto;width:auto;min-width:100%;border-collapse:collapse;font-size:11px;}
+table.catable{table-layout:auto;width:auto;margin:0 auto;border-collapse:collapse;font-size:11px;}
 table.catable th{border-right:1px solid rgba(255,255,255,.15);cursor:pointer;user-select:none;white-space:nowrap;padding:6px 10px;}
 table.catable th:last-child{border-right:none;}
 table.catable th:hover{background:var(--blue);}
