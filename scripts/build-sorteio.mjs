@@ -184,11 +184,16 @@ function main() {
   const historico = parseHistoricoAplicacao(npsPath);
   console.log(`Histórico de aplicação: ${historico.length} linhas válidas`);
 
-  // Mês corrente = mês de hoje (não mais derivado do mês-alvo). É o mês que ainda
-  // não foi transferido pro histórico — tudo que já está na campanha em andamento
-  // conta como "aplicado" pro cooldown.
-  const mesCorrenteIdx = refDate.getMonth();
-  const anoCorrenteDoMes = refDate.getFullYear();
+  // Mês corrente = mês ANTERIOR ao mês-alvo (não o mês de hoje!). É o mês que
+  // acabou de fechar antes da campanha que estamos preparando — é nele que
+  // procuramos os encerramentos (Término) e ele é o último da janela de
+  // cooldown. Usar o mês de "hoje" aqui é um bug: rodando o sorteio de
+  // setembro já em 01/09, "hoje" vira setembro (que mal começou, sem
+  // encerramentos ainda) em vez de agosto (o mês que de fato fechou). Isso é
+  // diferente de refDate (que É baseado em hoje) — refDate serve só pras
+  // contas de dias dos critérios 2 e 3, não pra decidir qual mês é o "corrente".
+  const mesCorrenteIdx = mesAlvoIdx - 1 >= 0 ? mesAlvoIdx - 1 : 11;
+  const anoCorrenteDoMes = mesAlvoIdx - 1 >= 0 ? anoAlvo : anoAlvo - 1;
 
   // Critério 4: cooldown de 6 meses, contando o mês corrente (hoje) pra trás, calendário.
   const cooldownSet = new Set();
