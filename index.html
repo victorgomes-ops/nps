@@ -419,6 +419,10 @@ table.srttable td.chk{text-align:center;padding:6px 2px;}
 table.srttable td.chk input{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
 table.srttable td.projeto{color:var(--gray);font-size:10.5px;}
 table.srttable tr.rowsel td{background:rgba(255,91,0,.07);}
+/* Campanha Atual: só a coluna "Nome Projeto" (2ª) pode quebrar linha; as
+   demais (Nome Fantasia, Gerente, Scrum Master, Parcela, Aplicação) não. */
+.ca-maintable table.srttable td{white-space:nowrap;}
+.ca-maintable table.srttable td:nth-child(2){white-space:normal;}
 .srt-warn{background:#FFF4EC;border:1px solid #FFD9BD;border-left:4px solid var(--orange);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--navy2);}
 .srt-warn b{color:var(--orange);}
 .srt-warn div{margin-bottom:3px;}
