@@ -834,9 +834,11 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
     <h2 id="caTitulo" class="sec" style="margin:0">Campanha Atual</h2>
     <div id="caSub" class="secsub" style="margin:2px 0 0"></div>
    </div>
+   <button class="actbtn shot" onclick="shot('campanhaAtual',this)">📷 Copiar print</button>
    <button class="srtbtn ghost" onclick="exportarCampanhaAtualCsv()">⬇ Exportar CSV</button>
   </div>
 
+  <div id="shot_campanhaAtual">
   <div class="kpis" style="margin-bottom:20px">
    <div class="kpi"><div class="n" id="caKpiClientes">-</div><div class="l">Clientes</div></div>
    <div class="kpi"><div class="n" id="caKpiProjetos">-</div><div class="l">Projetos</div></div>
@@ -889,6 +891,7 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
      </table>
     </div>
    </div>
+  </div>
   </div>
  </div>
 </div>
