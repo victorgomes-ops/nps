@@ -2054,7 +2054,7 @@ async function shot(cardId,btn){
  const orig=btn.innerHTML;
  btn.disabled=true; btn.innerHTML="Gerando print...";
  try{
-  const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2,useCORS:true});
+  const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2,useCORS:true,scrollX:0,scrollY:-window.scrollY,windowWidth:document.documentElement.scrollWidth,windowHeight:document.documentElement.scrollHeight});
   canvas.toBlob(async (blob)=>{
    try{
     if(navigator.clipboard && window.ClipboardItem){
