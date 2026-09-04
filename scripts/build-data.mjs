@@ -132,17 +132,14 @@ function atualizaPeriodo(html, periodo) {
   const novoBarra = `${periodo.mes}/${periodo.ano}`; // "Agosto/2026"
   const novoMinusculo = periodo.mes.toLowerCase(); // "agosto"
 
-  const tituloAtual = /<title>NPS (.+?) \| PWR Gestão<\/title>/.exec(html);
-  if (tituloAtual) html = html.replaceAll(tituloAtual[1], novoEspaco);
-
-  const barraAtual = /Campanha NPS — (.+?)<em>/.exec(html);
-  if (barraAtual) html = html.replaceAll(barraAtual[1], novoBarra);
-
-  const gsubAtual = /Painel executivo — Campanha de NPS ([^\s<]+)/.exec(html);
-  if (gsubAtual) html = html.replaceAll(gsubAtual[1], novoBarra);
-
-  const fraseAtual = /Na campanha de NPS de (\S+?),/.exec(html);
-  if (fraseAtual) html = html.replaceAll(fraseAtual[1], novoMinusculo);
+  // Substitui só dentro do próprio trecho casado pelo regex (não html.replaceAll do
+  // texto capturado) — currentHistorico/currentSorteio podem conter o mesmo texto
+  // "Agosto/2026" como DADO histórico legítimo, e um replaceAll no documento inteiro
+  // corromperia essas linhas ao trocar o mês da campanha atual.
+  html = html.replace(/<title>NPS .+? \| PWR Gestão<\/title>/, `<title>NPS ${novoEspaco} | PWR Gestão</title>`);
+  html = html.replace(/Campanha NPS — .+?<em>/, `Campanha NPS — ${novoBarra}<em>`);
+  html = html.replace(/Painel executivo — Campanha de NPS [^\s<]+/, `Painel executivo — Campanha de NPS ${novoBarra}`);
+  html = html.replace(/Na campanha de NPS de \S+?,/, `Na campanha de NPS de ${novoMinusculo},`);
 
   return html;
 }
