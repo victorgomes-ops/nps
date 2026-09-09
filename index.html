@@ -501,7 +501,7 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
 <!-- ===================== ABA COBRANÇA ===================== -->
 <div class="tabpanel active" id="tab-cobranca">
  <div class="title">Cobrança de NPS por Pessoa</div>
- <div class="sub">Cada pessoa aparece uma única vez, somando os projetos em que atua como Gerente de Projeto, Scrum Master ou consultor alocado (Pleno / Consultor III).</div>
+ <div class="sub">Cada pessoa aparece uma única vez, somando os projetos em que atua como Gerente de Projeto, Scrum Master, consultor alocado (Pleno / Consultor III) ou Senior/Sócio alocado como Fixo sem ser líder do projeto.</div>
 
  <div class="updatebox">
   <div class="ub-title">🔄 Manter o dashboard atualizado</div>
@@ -545,7 +545,7 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
  </div>
 
  <h2 class="sec">Cobrança por pessoa</h2>
- <div class="secsub">Cada pessoa aparece uma única vez, com todos os projetos da campanha em que atua — seja como Gerente de Projeto, Scrum Master ou consultor alocado (Pleno / Consultor III). Ordenado da menor para a maior taxa de resposta.</div>
+ <div class="secsub">Cada pessoa aparece uma única vez, com todos os projetos da campanha em que atua — seja como Gerente de Projeto, Scrum Master, consultor alocado (Pleno / Consultor III) ou Senior/Sócio alocado como Fixo sem ser líder do projeto. Ordenado da menor para a maior taxa de resposta.</div>
  <div id="lista"></div>
 </div>
 
@@ -1037,6 +1037,15 @@ function isPlenoOuCons3(cargo){
  cargo = (cargo||'').toString().trim();
  return /^Pleno/.test(cargo) || /^Consultor III/.test(cargo);
 }
+// Senior/Sócio só entra pela alocação (não por GP/Scrum) quando o vínculo é "Fixo" —
+// pega o caso de alguém sênior dedicado a um projeto sem ser líder formal dele (ex:
+// Elias Vilela fixo em Illa Mare sem ser GP nem Scrum lá, confirmado com o Victor em
+// 09/set/2026). Não entra em vínculos Eventual/Provisório/Deslocamento.
+function isSeniorOuSocioFixo(cargo, tipoAlocacao){
+ if((tipoAlocacao||'').toString().trim() !== 'Fixo') return false;
+ const grupo = grupoNivel(nivelCargo(normalizaCargo(cargo)));
+ return grupo === 'sen' || grupo === 'soc';
+}
 
 // ---- Projetos da campanha que não têm NENHUMA alocação (qualquer cargo) ----
 function processSemAlocacao(npsRows, alocRows){
@@ -1206,10 +1215,12 @@ function processConsolidado(npsRows, alocRows){
   registra(sm, proj, 'Scrum', null);
  });
 
- // 2) alocações de Pleno / Consultor III (só projetos da campanha)
+ // 2) alocações de Pleno / Consultor III (qualquer tipo de vínculo), ou Senior/Sócio
+ //    alocado como Fixo num projeto onde não é GP nem Scrum (só projetos da campanha)
  alocRows.forEach(r=>{
   const cargo = (r['Cargo']||'').toString().trim();
-  if(!isPlenoOuCons3(cargo)) return;
+  const tipoAlocacao = (r['Tipo Alocação']||'').toString().trim();
+  if(!isPlenoOuCons3(cargo) && !isSeniorOuSocioFixo(cargo, tipoAlocacao)) return;
   const proj = (r['Projeto']||'').toString().trim();
   const consultor = (r['Consultor']||'').toString().trim();
   registra(consultor, proj, null, cargo);
