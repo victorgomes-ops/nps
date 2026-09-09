@@ -74,6 +74,24 @@ upload) que usa a mesma lógica de leitura (`parseNpsSheet` etc.) — o script
 `scripts/build-data.mjs` replica exatamente essa lógica no servidor, para que o
 resultado automático seja idêntico ao que um upload manual pelo navegador geraria.
 
+### Regra de "quem é responsável por cobrar NPS de um projeto"
+
+Uma pessoa entra na aba "Cobrança" (e nas tabelas Sócios/Seniores/Plenos da aba
+Gerencial, que usam o mesmo cálculo — `processConsolidado()`) para um projeto quando:
+1. é Gerente de Projeto ou Scrum Master do contrato (aba NPS-Campanha), OU
+2. está alocada nele com cargo Pleno / Consultor III (qualquer tipo de vínculo), OU
+3. (desde 09/set/2026) é Senior/Sócio alocado como **Fixo** nele, mesmo sem ser
+   Gerente/Scrum do projeto.
+
+O item 3 foi adicionado depois que o Victor notou que Elias Vilela está Fixo em
+Illa Mare mas não é líder do projeto lá — como a regra original só cobria
+Pleno/Consultor III por alocação (assumindo que Senior/Sócio sempre apareceriam via
+liderança em outro projeto), ele nunca aparecia na cobrança daquele projeto
+específico. Checando a base inteira, o mesmo padrão também valia pra Victor Viana
+(Ono Mar) e Lucas Brinati (Picanha do Jonas) — corrigido junto (commit `b0e04e0`,
+função `isSeniorOuSocioFixo()`). Vínculos Eventual/Provisório/Deslocamento de
+Senior/Sócio continuam de fora — só "Fixo" conta.
+
 ## Fluxo "atualizar e publicar"
 
 Quando o Victor pedir para **atualizar e publicar** (ou variações: "atualizar nps",
