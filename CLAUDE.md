@@ -92,6 +92,18 @@ específico. Checando a base inteira, o mesmo padrão também valia pra Victor V
 função `isSeniorOuSocioFixo()`). Vínculos Eventual/Provisório/Deslocamento de
 Senior/Sócio continuam de fora — só "Fixo" conta.
 
+### Gotcha: nome de projeto pode divergir (acento/grafia) entre NPS-Campanha e Alocações
+
+`processConsolidado()` cruza os projetos das duas bases pelo nome (`Nome Contrato`
+no NPS-Campanha, `Projeto` nas Alocações). Achado em 10/set/2026: o mesmo projeto
+estava gravado como `"Iseletrica"` (sem acento) numa base e `"Iselétrica"` (com
+acento) na outra — cruzamento por string exata fazia a alocação da Débora Nunes
+nesse projeto sumir silenciosamente da cobrança, sem erro nenhum. Corrigido casando
+por nome normalizado (`normalizaNome()` — sem acento, uppercase), guardando a
+grafia do NPS-Campanha à parte só pra exibição (commit `b901b88`). Se um projeto
+"sumir" de alguém que você sabe que está alocado nele, suspeite primeiro de
+divergência de grafia entre as duas bases antes de qualquer outra coisa.
+
 ## Fluxo "atualizar e publicar"
 
 Quando o Victor pedir para **atualizar e publicar** (ou variações: "atualizar nps",
