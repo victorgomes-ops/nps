@@ -1178,11 +1178,15 @@ function mapaCargos(alocRows){
 
 // ---- CONSOLIDADO: uma pessoa = um card, somando liderança (GP/Scrum) + alocação (Pleno/Cons III) ----
 function processConsolidado(npsRows, alocRows){
+ // chave normalizada (sem acento/caixa) pra casar "Iseletrica" (NPS-Campanha) com
+ // "Iselétrica" (Alocações) — bases diferentes, mesma pessoa que preenche, grafias
+ // podem divergir. Guarda o nome de exibição (grafia do NPS-Campanha) à parte.
  const npsMap = {};
  npsRows.forEach(r=>{
   const proj = (r['Nome Contrato']||'').toString().trim();
   if(!proj) return;
-  npsMap[proj] = {
+  npsMap[normalizaNome(proj)] = {
+   nomeExibicao: proj,
    gp: (r['Gerente de Projeto']||'').toString().trim(),
    sm: (r['Scrum Master']||'').toString().trim(),
    status: (r['Status']||'').toString().trim(),
@@ -1190,17 +1194,18 @@ function processConsolidado(npsRows, alocRows){
   };
  });
 
- // pessoas[nome][projeto] = {ok, tipo, papeis:Set, cargo}
+ // pessoas[nome][projetoNormalizado] = {ok, tipo, papeis:Set, cargo, nomeExibicao}
  const pessoas = {};
  function registra(nome, proj, papel, cargo){
   if(!nome || !proj) return;
-  const info = npsMap[proj];
+  const chave = normalizaNome(proj);
+  const info = npsMap[chave];
   if(!info) return;
   if(!pessoas[nome]) pessoas[nome] = {};
-  if(!pessoas[nome][proj]){
-   pessoas[nome][proj] = {ok: info.status === 'Respondido', tipo: info.tipo, papeis: new Set(), cargo: null};
+  if(!pessoas[nome][chave]){
+   pessoas[nome][chave] = {ok: info.status === 'Respondido', tipo: info.tipo, papeis: new Set(), cargo: null, nomeExibicao: info.nomeExibicao};
   }
-  const slot = pessoas[nome][proj];
+  const slot = pessoas[nome][chave];
   if(papel) slot.papeis.add(papel);
   if(cargo && !slot.cargo) slot.cargo = cargo;
  }
@@ -1241,7 +1246,7 @@ function processConsolidado(npsRows, alocRows){
    const papelTxt = ehLider
      ? [...s.papeis].sort((a,b)=> a==='GP' ? -1 : 1).join(' / ')
      : (s.cargo || 'Alocado');
-   return {p: pr, ok: s.ok, t: s.tipo, r: papelTxt, lider: ehLider};
+   return {p: s.nomeExibicao, ok: s.ok, t: s.tipo, r: papelTxt, lider: ehLider};
   });
   // dentro do card: pendentes primeiro, depois liderança antes de alocação
   itens.sort((a,b)=> (a.ok===b.ok ? (a.lider===b.lider ? a.p.localeCompare(b.p) : (a.lider?-1:1)) : (a.ok?1:-1)));
