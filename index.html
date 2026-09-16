@@ -529,7 +529,7 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
  </div>
 
  <div class="kpis">
-  <div class="kpi"><div class="n" id="kpiProj">-</div><div class="l">Projetos na campanha</div></div>
+  <div class="kpi"><div class="n" id="kpiProj">-</div><div class="l">Clientes na campanha</div></div>
   <div class="kpi"><div class="n" id="kpiResp" style="color:var(--ok)">-</div><div class="l">Respondidos</div></div>
   <div class="kpi"><div class="n" id="kpiPend" style="color:var(--pend)">-</div><div class="l">Pendentes</div></div>
   <div class="kpi"><div class="n or" id="kpiPct">-</div><div class="l">Taxa geral</div></div>
@@ -1000,13 +1000,21 @@ function pcolor(p){return p===0?'var(--pend)':p>=100?'var(--ok)':'var(--orange)'
 
 // ---- KPIs gerais da campanha ----
 function processKpi(rows){
- let totalProj = 0, totalResp = 0;
+ // agrupa por CLIENTE, não por linha de contrato — NPS é do cliente, não do
+ // contrato (ex: "J. Patrício" e "J. Patrício - BI" são 2 contratos do mesmo
+ // cliente e contavam como 2 respostas separadas). Um cliente só conta como
+ // "Respondido" quando TODOS os contratos dele na campanha já responderam.
+ const porCliente = {};
  rows.forEach(r=>{
   const proj = (r['Nome Contrato']||'').toString().trim();
   if(!proj) return;
-  totalProj++;
-  if((r['Status']||'').toString().trim() === 'Respondido') totalResp++;
+  const cliente = (r['Cliente']||proj).toString().trim().toUpperCase();
+  if(!porCliente[cliente]) porCliente[cliente] = [];
+  porCliente[cliente].push((r['Status']||'').toString().trim() === 'Respondido');
  });
+ const clientes = Object.keys(porCliente);
+ const totalProj = clientes.length;
+ const totalResp = clientes.filter(c=>porCliente[c].every(Boolean)).length;
  return {
   proj: totalProj, resp: totalResp, pend: totalProj-totalResp,
   pct: totalProj ? Math.round((totalResp/totalProj)*1000)/10 : 0
@@ -1014,15 +1022,24 @@ function processKpi(rows){
 }
 
 function processUnidades(rows){
- const un = {};
+ // mesma regra do processKpi(): conta por CLIENTE, não por contrato (um cliente
+ // com 2+ contratos na mesma unidade contava 2x). Usa a unidade do primeiro
+ // contrato do cliente encontrado nos dados.
+ const porCliente = {};
  rows.forEach(r=>{
   const proj = (r['Nome Contrato']||'').toString().trim();
   if(!proj) return;
+  const cliente = (r['Cliente']||proj).toString().trim().toUpperCase();
   const u = (r['Unidade']||'Sem Unidade').toString().trim() || 'Sem Unidade';
   const resp = (r['Status']||'').toString().trim() === 'Respondido';
-  if(!un[u]) un[u] = {total:0, resp:0};
-  un[u].total++;
-  if(resp) un[u].resp++;
+  if(!porCliente[cliente]) porCliente[cliente] = {unidade: u, respondido: true};
+  if(!resp) porCliente[cliente].respondido = false;
+ });
+ const un = {};
+ Object.values(porCliente).forEach(c=>{
+  if(!un[c.unidade]) un[c.unidade] = {total:0, resp:0};
+  un[c.unidade].total++;
+  if(c.respondido) un[c.unidade].resp++;
  });
  const arr = Object.keys(un).map(nome=>{
   const d = un[nome];
@@ -1872,7 +1889,7 @@ function renderCharts(kpi, unidades){
    plugins: { legend: { display:false }, tooltip: { callbacks: { label: (ctx)=> ctx.label+': '+ctx.parsed } } } }
  });
  document.getElementById('donutPctLbl').textContent = kpi.pct + '%';
- document.getElementById('donutCaption').textContent = kpi.resp + ' de ' + kpi.proj + ' projetos respondidos';
+ document.getElementById('donutCaption').textContent = kpi.resp + ' de ' + kpi.proj + ' clientes responderam';
 
  const barEl = document.getElementById('unitBarChart');
  if(barChartObj) barChartObj.destroy();
