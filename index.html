@@ -1022,24 +1022,22 @@ function processKpi(rows){
 }
 
 function processUnidades(rows){
- // mesma regra do processKpi(): conta por CLIENTE, não por contrato (um cliente
- // com 2+ contratos na mesma unidade contava 2x). Usa a unidade do primeiro
- // contrato do cliente encontrado nos dados.
- const porCliente = {};
+ // Conta por CONTRATO, não por cliente — diferente do processKpi(), aqui cada
+ // unidade (Fortaleza/São Paulo/ACG) é responsável pelo PRÓPRIO contrato dela,
+ // então um cliente com contratos em unidades diferentes (ex: Centro Médico
+ // Maurício Carvalho tem contrato em Fortaleza E em ACG) tem que contar em cada
+ // unidade separadamente — agrupar por cliente aqui esconderia/perderia contrato
+ // de uma das unidades (confirmado com o Victor em 17/set/2026: ACG é unidade de
+ // verdade, não tipo de serviço).
+ const un = {};
  rows.forEach(r=>{
   const proj = (r['Nome Contrato']||'').toString().trim();
   if(!proj) return;
-  const cliente = (r['Cliente']||proj).toString().trim().toUpperCase();
   const u = (r['Unidade']||'Sem Unidade').toString().trim() || 'Sem Unidade';
   const resp = (r['Status']||'').toString().trim() === 'Respondido';
-  if(!porCliente[cliente]) porCliente[cliente] = {unidade: u, respondido: true};
-  if(!resp) porCliente[cliente].respondido = false;
- });
- const un = {};
- Object.values(porCliente).forEach(c=>{
-  if(!un[c.unidade]) un[c.unidade] = {total:0, resp:0};
-  un[c.unidade].total++;
-  if(c.respondido) un[c.unidade].resp++;
+  if(!un[u]) un[u] = {total:0, resp:0};
+  un[u].total++;
+  if(resp) un[u].resp++;
  });
  const arr = Object.keys(un).map(nome=>{
   const d = un[nome];
