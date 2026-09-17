@@ -589,6 +589,7 @@ table.gtable.catable-ap th:first-child,table.gtable.catable-ap td:first-child{te
      <div class="cflist" id="cfList"></div>
     </div>
    </div>
+   <button class="cfbtn" id="btnFaltantes" onclick="toggleApenasFaltantes()">⏳ Só quem falta responder</button>
    <span class="gtable-hint">clique na coluna pra ordenar</span>
    <span class="gtable-count" id="gtableCount"></span>
   </div>
@@ -1782,6 +1783,14 @@ let gerencialSortDir = 'asc';
 let gerencialSortAtivo = false; // só mostra indicador visual após o usuário clicar
 let cargoModo = 'nivel';          // 'nivel' (agrupado) | 'detalhado'
 let selPorModo = {nivel: null, detalhado: null};   // null = todos
+let apenasFaltantes = false;      // true = esconde quem já respondeu tudo (pend===0)
+
+function toggleApenasFaltantes(){
+ apenasFaltantes = !apenasFaltantes;
+ const btn = document.getElementById('btnFaltantes');
+ if(btn) btn.classList.toggle('filtrando', apenasFaltantes);
+ renderGerencialTable();
+}
 
 function campoModo(){ return cargoModo === 'nivel' ? 'nivel' : 'cargo'; }
 
@@ -1936,7 +1945,7 @@ function renderGerencialTable(){
  const campo = campoModo();
  const sel = selAtual();
  const base = (sel && sel.size)
-   ? gerencialData.filter(d=>sel.has(d[campo] || 'Não identificado'))
+   ? gerencialData.filter(d=>sel.has(d[campo] || 'Não identificado') && (!apenasFaltantes || d.pend > 0))
    : [];
  const sorted = [...base].sort((a,b)=>{
   let av = a[col], bv = b[col];
