@@ -23,6 +23,12 @@ const DIAS_MIN_SEM_TERMINO = 30; // criterio 2
 const DIAS_MIN_DESDE_INICIO = 90; // criterio 3
 const MESES_COOLDOWN = 6; // criterio 4
 
+// Pessoas que não contam como Senior/Sócio no sorteio: não entram no aviso "sem
+// projeto elegível pra representá-lo" nem na tabela Por Gerente da Campanha Atual.
+// Lista fixa, decidida pelo Victor em 07/10/2026: Paulo Vitor (Sócio) não participa
+// dos projetos por enquanto. Pra voltar a contar, é só tirar o nome daqui.
+const FORA_DO_SORTEIO = ['Paulo Vitor'];
+
 function normalizaNome(s) {
   return (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
 }
@@ -180,9 +186,17 @@ function main() {
   const contratos = parseContratos(contratosPath);
   console.log(`Contratos.xlsx: ${contratos.length} linhas`);
 
-  const seniores = parseUsuariosPorCargo(usuariosPath, /^senior/i);
-  const socios = parseUsuariosPorCargo(usuariosPath, /^s[óo]cio/i);
-  console.log(`Usuários ativos — Senior: ${seniores.length} | Sócio: ${socios.length}`);
+  const senioresAtivos = parseUsuariosPorCargo(usuariosPath, /^senior/i);
+  const sociosAtivos = parseUsuariosPorCargo(usuariosPath, /^s[óo]cio/i);
+  const foraSet = new Set(FORA_DO_SORTEIO.map(normalizaNome));
+  const contaNoSorteio = (nome) => !foraSet.has(normalizaNome(nome));
+  const seniores = senioresAtivos.filter(contaNoSorteio);
+  const socios = sociosAtivos.filter(contaNoSorteio);
+  const excluidos = [...senioresAtivos, ...sociosAtivos].filter((n) => !contaNoSorteio(n));
+  console.log(
+    `Usuários ativos — Senior: ${seniores.length} | Sócio: ${socios.length}` +
+      (excluidos.length ? ` (fora do sorteio por lista fixa: ${excluidos.join(', ')})` : '')
+  );
 
   const historico = parseHistoricoAplicacao(npsPath);
   console.log(`Histórico de aplicação: ${historico.length} linhas válidas`);

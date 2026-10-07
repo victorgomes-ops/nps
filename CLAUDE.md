@@ -151,6 +151,16 @@ usa só `Data Término Vendido` (o script olha `Previsto` primeiro), casa nome
 exato (o script ignora acento) e exige `Projeto Interno = "Não"` (o script só
 barra "Sim").
 
+### Pessoas fora do sorteio (lista fixa)
+
+`FORA_DO_SORTEIO` no topo de `scripts/build-sorteio.mjs` tira pessoas da conta de
+Senior/Sócio: elas não geram o aviso "sem projeto elegível pra representá-lo" nem
+aparecem na tabela Por Gerente da Campanha Atual. Desde 07/10/2026 tem só o
+**Paulo Vitor** (Sócio), que não participa dos projetos por enquanto, a pedido do
+Victor — vale a partir dos próximos sorteios (o de Outubro já publicado ainda o
+mostra). Pra ele voltar, é só tirar o nome da lista. A alternativa (marcar
+`Ativo = Não` no Usuarios.xlsx) mexeria também no resto do app, então não foi usada.
+
 Três abas relacionadas:
 - **Sorteio NPS**: pool inteiro elegível, dividido em "com Senior" / "sem Senior"
   (conforme Gerente OU Scrum Master do projeto ser Senior) + "NPS Término". Escolha
