@@ -98,22 +98,25 @@ function parseHistoricoAplicacao(filePath) {
       // excelSerialToDate ancora em meia-noite UTC — usar getUTC*() aqui, senão em
       // fusos negativos (Brasil, UTC-3) a data "cai" pro dia/mês anterior (ex: um
       // Período "01/03" vira fevereiro), furando o cooldown de 6 meses por 1 mês.
-      let ano, mes;
+      let ano, mes, dia;
       if (typeof periodo === 'number') {
         const data = excelSerialToDate(periodo);
         ano = data.getUTCFullYear();
         mes = data.getUTCMonth();
+        dia = data.getUTCDate();
       } else {
         const data = parseDataBR(periodo);
         if (!data) return null;
         ano = data.getFullYear();
         mes = data.getMonth();
+        dia = data.getDate();
       }
       return {
         empresa,
         tipo,
         ano,
         mes, // mes: 0-11
+        dia,
         gerente: (r['Gerente do Projeto'] || '').toString().trim(),
         scrumMaster: (r['Scrum Master'] || '').toString().trim(),
         status: (r['Status'] || '').toString().trim(),
@@ -186,8 +189,8 @@ function main() {
 
   // Mês corrente = mês ANTERIOR ao mês-alvo (não o mês de hoje!). É o mês que
   // acabou de fechar antes da campanha que estamos preparando — é nele que
-  // procuramos os encerramentos (Término) e ele é o último da janela de
-  // cooldown. Usar o mês de "hoje" aqui é um bug: rodando o sorteio de
+  // procuramos os encerramentos (Término). O cooldown (critério 4) não usa mais
+  // esse mês, é calculado em meses completos até hoje. Usar o mês de "hoje" aqui é um bug: rodando o sorteio de
   // setembro já em 01/09, "hoje" vira setembro (que mal começou, sem
   // encerramentos ainda) em vez de agosto (o mês que de fato fechou). Isso é
   // diferente de refDate (que É baseado em hoje) — refDate serve só pras
@@ -195,19 +198,21 @@ function main() {
   const mesCorrenteIdx = mesAlvoIdx - 1 >= 0 ? mesAlvoIdx - 1 : 11;
   const anoCorrenteDoMes = mesAlvoIdx - 1 >= 0 ? anoAlvo : anoAlvo - 1;
 
-  // Critério 4: cooldown de 6 meses, contando o mês corrente (hoje) pra trás, calendário.
+  // Critério 4: cooldown de 6 meses, igual à fórmula do gabarito no Excel (aba "Base
+  // fonte" do NPS-Campanha): DATEDIF(data do último NPS, HOJE, "M") >= 6 libera a
+  // empresa. "M" conta meses COMPLETOS entre as duas datas, então um NPS de
+  // 01/04/2026 já tem 6 meses em 02/10/2026 e libera. A janela de meses de
+  // calendário que usávamos antes (abr a set) segurava esse caso 1 mês a mais:
+  // 26 contratos ficaram de fora do sorteio de out/2026 (diagnóstico de 07/10/2026).
+  const mesesCompletosDesde = (h) =>
+    (refDate.getFullYear() - h.ano) * 12 + (refDate.getMonth() - h.mes) - (refDate.getDate() < h.dia ? 1 : 0);
   const cooldownSet = new Set();
-  const mesesCooldown = [];
-  for (let i = 0; i < MESES_COOLDOWN; i++) {
-    const d = new Date(anoCorrenteDoMes, mesCorrenteIdx - i, 1);
-    mesesCooldown.push({ ano: d.getFullYear(), mes: d.getMonth() });
-  }
   for (const h of historico) {
-    if (mesesCooldown.some((m) => m.ano === h.ano && m.mes === h.mes)) cooldownSet.add(normalizaNome(h.empresa));
+    if (mesesCompletosDesde(h) < MESES_COOLDOWN) cooldownSet.add(normalizaNome(h.empresa));
   }
   const clientesCampanhaAtual = parseCampanhaAtual(npsPath);
   clientesCampanhaAtual.forEach((c) => cooldownSet.add(normalizaNome(c)));
-  console.log(`Cooldown (últimos ${MESES_COOLDOWN} meses + campanha em andamento de ${NOMES_MES[mesCorrenteIdx]}/${anoCorrenteDoMes}): ${cooldownSet.size} empresas excluídas`);
+  console.log(`Cooldown (último NPS há menos de ${MESES_COOLDOWN} meses completos + campanha em andamento): ${cooldownSet.size} empresas excluídas`);
 
   // ── Critérios 1-4: pool elegível para NPS Aleatório (não reduzido) ──
   const pool = contratos.filter((c) => {

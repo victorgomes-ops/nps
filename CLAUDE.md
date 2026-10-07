@@ -125,6 +125,32 @@ aplicação" (dentro de `NPS - Campanha.xlsx`). Script: `scripts/build-sorteio.m
 <nps-campanha.xlsx> <AAAA-MM-rótulo> index.html`). Detalhes de critérios e bugs já
 corrigidos: ver histórico de commits com `sorteio` na mensagem.
 
+### Gabarito do sorteio = fórmulas do Excel (NPS - Campanha.xlsx)
+
+O "gabarito" que o Victor usa pra conferir o sorteio está dentro do próprio
+`NPS - Campanha.xlsx`: a aba **"Base fonte"** (cópia de Contratos + colunas de
+critério com fórmulas) e a aba **"Resumo Base Fonte"** (pivot dos projetos APTO).
+A fórmula da coluna A é `Ativo` + `Data Término Vendido > HOJE()+30` + `Dias de
+início >= 90` + `DATEDIF(último NPS, HOJE(), "M") >= 6` + `Projeto Interno = "Não"`.
+Pra comparar, replique essa fórmula nos contratos e confira se o pool do app fecha
+com os APTO (em 07/10/2026 fechou 63 = 63, sem diferença nos dois sentidos).
+
+Duas causas já vistas de divergência (investigação de 07/10/2026, quando 32
+projetos do gabarito faltavam no app):
+1. **Cooldown:** o script usava janela de meses de calendário (abr a set bloqueava
+   abril); o Excel usa `DATEDIF "M"` (meses completos até hoje) e libera quem teve
+   NPS há exatos 6 meses. Corrigido: `build-sorteio.mjs` agora calcula meses
+   completos até HOJE (26 contratos voltaram, ex: ACB Seguros, ACT).
+2. **Contratos.xlsx desatualizado no Drive:** o Excel tinha as renovações
+   (Data Término Vendido +1 ano) e o Contratos.xlsx não, então 6 contratos caíam
+   no filtro de término (ex: Casa Di Campo - ACG). Não é bug de código: antes de
+   gerar o sorteio, confirme que o Contratos.xlsx é a extração mais recente.
+
+Diferenças de regra que existem mas não afetaram nenhum caso até agora: o Excel
+usa só `Data Término Vendido` (o script olha `Previsto` primeiro), casa nome
+exato (o script ignora acento) e exige `Projeto Interno = "Não"` (o script só
+barra "Sim").
+
 Três abas relacionadas:
 - **Sorteio NPS**: pool inteiro elegível, dividido em "com Senior" / "sem Senior"
   (conforme Gerente OU Scrum Master do projeto ser Senior) + "NPS Término". Escolha
