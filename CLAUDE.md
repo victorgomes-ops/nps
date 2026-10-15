@@ -207,6 +207,21 @@ Ver `drive-config.json` para IDs, nomes de arquivo, aba e caminho no Drive. Resu
 | NPS | NPS - Campanha.xlsx | Aba **RESUMO MÊS (2)** (busca é tolerante a acento/caixa) |
 | Alocações | Alocações - NPS.xlsx | Usar este arquivo, não "Alocações.xlsx" |
 | Usuários | Usuarios.xlsx | Coluna "Ativo": Sim = ativo |
+| Contratos | Contratos.xlsx | Só o sorteio usa; o ID muda quando o arquivo é recriado |
+
+### Gotcha: arquivo com o mesmo nome pode ser uma CÓPIA com ID novo (15/out/2026)
+
+Em 15/set/2026 o Victor disse que a "Alocações - NPS" tinha mudado de pasta. Eu
+baixei pelo ID antigo, comparei o conteúdo (hash idêntico) com o arquivo da pasta
+nova e concluí, errado, que era o mesmo arquivo só movido. Era uma **cópia**: mesmo
+conteúdo naquele dia, ID novo, e foi a cópia que o Victor passou a editar. Por um
+mês o app leu o arquivo parado (11/set) e eu reportei "Alocações sem mudança" a
+cada atualização, até ele notar que Guilherme Costa seguia em Bentô e Paulo Vitor
+em Prime Sol. Moral: **hash igual não prova que é o mesmo arquivo** — mover mantém
+o ID, copiar e recriar geram ID novo. Pra confirmar, compare `createdTime`,
+`modifiedTime` e `parentId` (`get_file_metadata`) ou liste os homônimos com
+`search_files`. Sinal de alerta: uma base que "nunca muda" por semanas. O mesmo vale
+pro Contratos.xlsx, que já foi recriado mais de uma vez.
 
 ## Credenciais
 

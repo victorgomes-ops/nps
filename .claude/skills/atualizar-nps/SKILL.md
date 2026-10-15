@@ -28,6 +28,11 @@ não tiver o contexto na conversa.
    em um arquivo de tool-result por ser grande, use `jq -r '.content' <arquivo> | base64 -d > data/<nome>.xlsx`.
    Salve os 3 arquivos em `data/` na raiz do repo (pasta já está no `.gitignore`,
    então nunca vai para o git).
+   - **Desconfie de base que não mexe:** se alocações/usuários ficarem iguais por
+     semanas, ou o Victor disser que atualizou e o número não mudou, rode
+     `search_files` pelo título (ex: `title contains 'Aloca'`) e compare
+     `modifiedTime`. Um arquivo copiado ou recriado tem ID novo e o ID do
+     `drive-config.json` fica parado (aconteceu com as Alocações em set/2026).
 
 2. **Reprocessar e reembutir os dados**:
    ```

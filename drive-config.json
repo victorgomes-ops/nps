@@ -8,9 +8,9 @@
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\3 - NPS"
     },
     "alocacoesNps": {
-      "id": "1J9RigcP7C0_4Sd6tg5Gs9Hfm4Q8BWAy0",
+      "id": "1y7ERBbJxPiTOQPP-viiag1mwJoTzR09N",
       "nome": "Alocações - NPS.xlsx",
-      "observacao": "Usar este arquivo, nao 'Alocações.xlsx'. Movido em 15/set/2026 da pasta compartilhada 'Bases SPWR' pra pasta pessoal do Victor - o ID nao muda quando um arquivo e so movido de pasta no Drive, entao o download por ID continua funcionando normalmente sem nenhuma mudanca de codigo.",
+      "observacao": "Usar este arquivo, nao 'Alocações.xlsx'. ATENCAO: em 15/set/2026 o Victor COPIOU o arquivo pra pasta pessoal dele (nao foi so mover) - a copia tem ID novo e e a que ele edita desde entao. O ID antigo (1J9RigcP7C0_4Sd6tg5Gs9Hfm4Q8BWAy0) ficou parado em 11/set/2026 e foi lido por engano ate 15/out/2026. Se o numero de alocacoes nao mexer por semanas, ou o Victor disser que atualizou e o app nao refletiu, rode search_files com title contains 'Aloca' e compare createdTime/modifiedTime antes de qualquer outra hipotese.",
       "caminho": "G:\\Meu Drive\\Victor Gomes\\Alocações - NPS.xlsx"
     },
     "usuarios": {
@@ -20,9 +20,9 @@
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     },
     "contratos": {
-      "id": "1zI-P6Tzx7TrEb_HFuEKR9Qfm0l2rmo8x",
+      "id": "1WTBdsDRCIK4_gSU8TpzY0X-ecYIG6ieJ",
       "nome": "Contratos.xlsx",
-      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs. ATENÇÃO: diferente das outras 3 bases, esse ID já mudou pelo menos uma vez (o arquivo parece ser recriado periodicamente, não editado em cima do mesmo ID) — se o download der 'Requested entity was not found', buscar de novo por nome com search_files (parentId da pasta 'Bases SPWR' = 1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg) antes de reportar erro.",
+      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs. ATENÇÃO: este ID MUDA — o arquivo é recriado periodicamente, não editado em cima do mesmo ID (o ID anterior, 1zI-P6Tzx7TrEb_HFuEKR9Qfm0l2rmo8x, ficou parado em 22/set/2026 quando este foi criado em 05/out/2026). Antes de CADA sorteio, rode search_files com parentId = '1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg' (pasta 'Bases SPWR') e title = 'Contratos.xlsx' e use o de modifiedTime mais recente; atualize este ID se mudou.",
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     }
   },
