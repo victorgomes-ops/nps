@@ -14,9 +14,9 @@
       "caminho": "G:\\Meu Drive\\Victor Gomes\\Alocações - NPS.xlsx"
     },
     "usuarios": {
-      "id": "1mdwezfiSBrgDfOyPveaKMNyDTCQNF2Pa",
+      "id": "1M-PGO9Nj1svTsmXSgLKyKMa1n8Jrt-mE",
       "nome": "Usuarios.xlsx",
-      "observacao": "Coluna 'Ativo': Sim = colaborador ativo; coluna 'Cargo' usada pra achar Seniors/Sócios no sorteio",
+      "observacao": "Coluna 'Ativo': Sim = colaborador ativo; coluna 'Cargo' usada pra achar Seniors/Sócios no sorteio. ATENÇÃO: este ID MUDA — o arquivo é recriado (o anterior, 1mdwezfiSBrgDfOyPveaKMNyDTCQNF2Pa, sumiu em 26/out/2026 e o download deu 'Requested entity was not found'). Se isso acontecer de novo, rode search_files com parentId = '1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg' (pasta 'Bases SPWR') e title contains 'Usuarios', use o de modifiedTime mais recente e atualize este ID. Ignore os homônimos 'usuarios.xlsx'/'Usuarios.xlsx' de outras pastas.",
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     },
     "contratos": {

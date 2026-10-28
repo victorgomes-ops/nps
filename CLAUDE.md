@@ -221,7 +221,10 @@ em Prime Sol. Moral: **hash igual não prova que é o mesmo arquivo** — mover 
 o ID, copiar e recriar geram ID novo. Pra confirmar, compare `createdTime`,
 `modifiedTime` e `parentId` (`get_file_metadata`) ou liste os homônimos com
 `search_files`. Sinal de alerta: uma base que "nunca muda" por semanas. O mesmo vale
-pro Contratos.xlsx, que já foi recriado mais de uma vez.
+pro Contratos.xlsx, que já foi recriado mais de uma vez, e pro Usuarios.xlsx (recriado
+em 26/out/2026: o ID antigo passou a dar "Requested entity was not found" e o novo
+foi achado com `search_files` na pasta Bases SPWR). Em qualquer dos 4 arquivos, erro
+"entity not found" = ID velho; procurar o vivo em vez de reaproveitar cópia local.
 
 ## Credenciais
 
