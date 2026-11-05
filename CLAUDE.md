@@ -166,6 +166,17 @@ Vendido renovado para 26/12/2026 no Contratos.xlsx (25/09/2026 na Base fonte). A
 achar diferença, compare linha a linha as duas fontes antes de mexer no script: vale
 a mais recente.
 
+**Troca de Scrum feita só na "Base fonte" não chega ao app (05/11/2026):** o Victor
+trocou o Scrum Master de 12 contratos (saiu Rafael Honorato) editando a aba "Base
+fonte" do `NPS - Campanha.xlsx`, mas o `Contratos.xlsx` do Drive (que o sorteio lê)
+seguiu com o Rafael. Por isso, a cada sorteio, compare as colunas Gerente de Projeto /
+Scrum Master / Status do Projeto da "Base fonte" com o Contratos.xlsx, chaveando por
+`Código - Op e Fin` (cuidado: há linhas com esse código vazio, que casam entre si e
+bagunçam o patch; filtre só os códigos que mudaram). Se divergir, aplique o patch numa
+cópia do Contratos (no scratchpad, sem mexer em `data/contratos.xlsx`), gere o sorteio
+com ela e peça ao Victor a mesma edição na fonte, senão a próxima extração do sistema
+volta o Scrum antigo.
+
 ### Pessoas fora do sorteio (lista fixa)
 
 `FORA_DO_SORTEIO` no topo de `scripts/build-sorteio.mjs` tira pessoas da conta de

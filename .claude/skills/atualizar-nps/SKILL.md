@@ -41,6 +41,11 @@ não tiver o contexto na conversa.
    ```
    O script imprime quantos projetos de NPS, alocações e usuários ativos foram
    carregados. Confira se os números fazem sentido (ex: não deveria zerar).
+   - **Virada de mês:** quando o período da aba muda (ex: Outubro → Novembro) e o
+     número de projetos de NPS despenca (05/11/2026: de 38 para 1, com uma linha
+     sobrando do modelo anterior), a campanha nova ainda está sendo montada. Não
+     publique: restaure o `index.html` (`git checkout -- index.html`) e pergunte ao
+     Victor se é pra subir assim mesmo. Ele decidiu segurar até preencher.
 
 3. **Revisar e commitar**: rode `git diff --stat index.html` para confirmar que só
    umas poucas linhas de dados mudaram. Se aparecer QUALQUER linha fora das 3
