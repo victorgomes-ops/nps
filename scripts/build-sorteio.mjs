@@ -235,12 +235,15 @@ function main() {
     const status = (c['Status do Projeto'] || '').toString().trim().toLowerCase();
     if (status !== 'ativo') return false;
 
-    // "Data Término Previsto" fica vazia na quase totalidade dos contratos (98% dos
-    // ativos) — quem carrega a data real prevista de encerramento nesses casos é
-    // "Data Término Vendido". Aplica pra TODO mundo, inclusive Perpétuo/Renovação
-    // Automática — mesmo contrato perpétuo tem um "Término Vendido" real marcando
-    // o fim do ciclo atual (ex: DoceVille, Perpétuo, com Vendido em cima da hora).
-    const termPrev = parseDataBR(c['Data Término Previsto']) || parseDataBR(c['Data Término Vendido']);
+    // "Data Término Vendido" é a data de encerramento do ciclo atual e é a que o
+    // gabarito do Excel usa. "Data Término Previsto" fica vazia em quase todos os
+    // ativos e, quando preenchida, costuma ser antiga e nunca atualizada nas
+    // renovações (nov/2026: 5 ativos com Previsto de 2023-2025 e Vendido no futuro,
+    // ex: Pronutrir - ACG), então só serve de reserva se o Vendido estiver vazio.
+    // Aplica pra TODO mundo, inclusive Perpétuo/Renovação Automática — mesmo contrato
+    // perpétuo tem um "Término Vendido" real marcando o fim do ciclo atual (ex:
+    // DoceVille, Perpétuo, com Vendido em cima da hora).
+    const termPrev = parseDataBR(c['Data Término Vendido']) || parseDataBR(c['Data Término Previsto']);
     if (termPrev) {
       const dias = diffDias(termPrev, refDate);
       // <= 30: cobre tanto quem termina nos próximos 30 dias quanto quem já

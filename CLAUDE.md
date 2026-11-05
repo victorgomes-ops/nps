@@ -146,10 +146,25 @@ projetos do gabarito faltavam no app):
    no filtro de término (ex: Casa Di Campo - ACG). Não é bug de código: antes de
    gerar o sorteio, confirme que o Contratos.xlsx é a extração mais recente.
 
-Diferenças de regra que existem mas não afetaram nenhum caso até agora: o Excel
-usa só `Data Término Vendido` (o script olha `Previsto` primeiro), casa nome
-exato (o script ignora acento) e exige `Projeto Interno = "Não"` (o script só
-barra "Sim").
+3. **Data de término (corrigido em 05/11/2026):** o script olhava `Data Término
+   Previsto` antes do `Vendido`. Em 5 contratos ativos o Previsto era antigo
+   (2023-2025, nunca atualizado nas renovações) e o Vendido estava no futuro, então
+   o script os descartava por "terminar em menos de 30 dias" (caso que apareceu:
+   Pronutrir - ACG, APTO no Excel). Agora `build-sorteio.mjs` usa o Vendido, igual ao
+   Excel, e só cai no Previsto se o Vendido estiver vazio.
+
+Diferenças de regra que ainda existem mas não afetaram nenhum caso até agora: o
+Excel casa nome exato (o script ignora acento) e exige `Projeto Interno = "Não"`
+(o script só barra "Sim").
+
+**Sobra esperada na comparação (05/11/2026: pool 60 no app × 61 APTO no Excel):** a
+aba "Base fonte" é uma cópia de Contratos colada no Excel e pode estar mais velha
+que o `Contratos.xlsx` do Drive. Em 05/11 as 3 diferenças vinham disso, não de bug:
+Norte Geradores - ACG e Capital Upgrade - Espião já constavam como Inativo (término
+real 03/11 e 21/10) no Contratos.xlsx mas Ativo na Base fonte, e a DIMAX tinha o
+Vendido renovado para 26/12/2026 no Contratos.xlsx (25/09/2026 na Base fonte). Ao
+achar diferença, compare linha a linha as duas fontes antes de mexer no script: vale
+a mais recente.
 
 ### Pessoas fora do sorteio (lista fixa)
 

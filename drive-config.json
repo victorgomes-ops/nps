@@ -20,9 +20,9 @@
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     },
     "contratos": {
-      "id": "1WTBdsDRCIK4_gSU8TpzY0X-ecYIG6ieJ",
+      "id": "1xoAn5c1zgJFoHEj2q3oMfZrXh1pJnwud",
       "nome": "Contratos.xlsx",
-      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs. ATENÇÃO: este ID MUDA — o arquivo é recriado periodicamente, não editado em cima do mesmo ID (o ID anterior, 1zI-P6Tzx7TrEb_HFuEKR9Qfm0l2rmo8x, ficou parado em 22/set/2026 quando este foi criado em 05/out/2026). Antes de CADA sorteio, rode search_files com parentId = '1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg' (pasta 'Bases SPWR') e title = 'Contratos.xlsx' e use o de modifiedTime mais recente; atualize este ID se mudou.",
+      "observacao": "Usado só pelo sorteio de NPS (scripts/build-sorteio.mjs), não pelo build-data.mjs. ATENÇÃO: este ID MUDA — o arquivo é recriado periodicamente, não editado em cima do mesmo ID (os IDs anteriores ficaram parados: 1zI-P6Tzx7TrEb_HFuEKR9Qfm0l2rmo8x em 22/set/2026 e 1WTBdsDRCIK4_gSU8TpzY0X-ecYIG6ieJ em 30/out/2026, quando o atual foi criado). Antes de CADA sorteio, rode search_files com parentId = '1wqbXn24nmKJY6EGx9kxd7oVodYHUkiSg' (pasta 'Bases SPWR') e title = 'Contratos.xlsx' e use o de modifiedTime mais recente; atualize este ID se mudou.",
       "caminho": "G:\\.shortcut-targets-by-id\\0B79q2rIj_NxpekNXZHFnSnpRY2c\\2. Dir. OP\\1 - Atualização Periódica\\Bases SPWR"
     }
   },
